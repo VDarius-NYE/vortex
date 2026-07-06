@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<title>Vortex Military - Karakterkészítő</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app" class="hidden">
+        <div class="creator-panel">
+        <div class="sidebar">
+            <div class="brand">
+                <div class="brand-logo">VM</div>
+                <div class="brand-text">KARAKTERKÉSZÍTŐ</div>
+            </div>
+
+            <nav class="tabs">
+                <button class="tab-btn active" data-tab="model">Modell</button>
+                <button class="tab-btn" data-tab="faceshape">Arc alak</button>
+                <button class="tab-btn" data-tab="features">Arc jellemzők</button>
+                <button class="tab-btn" data-tab="overlays">Smink / Jegyek</button>
+                <button class="tab-btn" data-tab="hair">Haj</button>
+                <button class="tab-btn" data-tab="eyes">Szem</button>
+                <button class="tab-btn" data-tab="clothes">Ruházat</button>
+                <button class="tab-btn" data-tab="props">Kiegészítők</button>
+            </nav>
+
+            <div class="camera-hint">
+                <span class="camera-hint-title">Kamera mozgatása</span>
+                <span><kbd>A</kbd> balra&nbsp;&nbsp;<kbd>D</kbd> jobbra</span>
+            </div>
+
+            <div class="actions">
+                <button id="saveBtn" class="btn-primary">MENTÉS</button>
+                <button id="cancelBtn" class="btn-secondary hidden">MÉGSE</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- MODELL -->
+            <section class="tab-panel active" data-panel="model">
+                <h2>Válassz alap modellt</h2>
+                <div class="model-choice">
+                    <button class="model-btn" data-model="mp_m_freemode_01">Férfi</button>
+                    <button class="model-btn" data-model="mp_f_freemode_01">Nő</button>
+                </div>
+            </section>
+
+            <!-- ARC ALAK -->
+            <section class="tab-panel" data-panel="faceshape">
+                <h2>Arc alak keverés</h2>
+                <div class="row">
+                    <div class="stepper" data-field="headBlend.shapeFirst" data-max="45"></div>
+                    <label>Forma szülő #1</label>
+                </div>
+                <div class="row">
+                    <div class="stepper" data-field="headBlend.shapeSecond" data-max="45"></div>
+                    <label>Forma szülő #2</label>
+                </div>
+                <div class="slider-row">
+                    <label>Forma keverés</label>
+                    <input type="range" min="0" max="1" step="0.01" data-field="headBlend.shapeMix">
+                </div>
+                <div class="row">
+                    <div class="stepper" data-field="headBlend.skinFirst" data-max="45"></div>
+                    <label>Bőr szülő #1</label>
+                </div>
+                <div class="row">
+                    <div class="stepper" data-field="headBlend.skinSecond" data-max="45"></div>
+                    <label>Bőr szülő #2</label>
+                </div>
+                <div class="slider-row">
+                    <label>Bőrszín keverés</label>
+                    <input type="range" min="0" max="1" step="0.01" data-field="headBlend.skinMix">
+                </div>
+            </section>
+
+            <!-- ARC JELLEMZŐK -->
+            <section class="tab-panel" data-panel="features">
+                <h2>Arc jellemzők</h2>
+                <div id="featuresList" class="slider-list"></div>
+            </section>
+
+            <!-- OVERLAYS -->
+            <section class="tab-panel" data-panel="overlays">
+                <h2>Smink, szakáll, jegyek</h2>
+                <div id="overlaysList" class="overlay-list"></div>
+            </section>
+
+            <!-- HAIR -->
+            <section class="tab-panel" data-panel="hair">
+                <h2>Haj</h2>
+                <div class="row">
+                    <div class="stepper" data-field="hair.style" data-max="0"></div>
+                    <label>Frizura</label>
+                </div>
+                <div class="row">
+                    <div class="stepper" data-field="hair.color" data-max="63"></div>
+                    <label>Hajszín</label>
+                </div>
+                <div class="row">
+                    <div class="stepper" data-field="hair.highlight" data-max="63"></div>
+                    <label>Melírszín</label>
+                </div>
+            </section>
+
+            <!-- EYES -->
+            <section class="tab-panel" data-panel="eyes">
+                <h2>Szemszín</h2>
+                <div class="row">
+                    <div class="stepper" data-field="eyeColor" data-max="31"></div>
+                    <label>Szemszín</label>
+                </div>
+            </section>
+
+            <!-- CLOTHES -->
+            <section class="tab-panel" data-panel="clothes">
+                <h2>Ruházat</h2>
+                <div id="clothesList" class="component-list"></div>
+            </section>
+
+            <!-- PROPS -->
+            <section class="tab-panel" data-panel="props">
+                <h2>Kiegészítők</h2>
+                <div id="propsList" class="component-list"></div>
+            </section>
+        </div>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

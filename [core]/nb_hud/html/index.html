@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<title>Vortex Military - HUD</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="hudContainer"></div>
+
+    <div id="editorOverlay" class="hidden">
+        <div class="editor-hint">Húzd az elemeket a kívánt pozícióba. Nyomj <kbd>F9</kbd>-et vagy kattints a Bezárásra a kilépéshez.</div>
+
+        <div class="editor-panel">
+            <h2>HUD Szerkesztő</h2>
+
+            <div class="editor-section">
+                <label class="editor-label">Megjelenítési stílus</label>
+                <div class="style-choice">
+                    <button class="style-btn" data-style="bar">Csík</button>
+                    <button class="style-btn" data-style="radial">Körkörös</button>
+                    <button class="style-btn" data-style="numeric">Szám</button>
+                </div>
+            </div>
+
+            <div class="editor-section">
+                <label class="editor-label">Elemek láthatósága</label>
+                <div id="visibilityList" class="visibility-list"></div>
+            </div>
+
+            <div class="editor-actions">
+                <button id="saveEditorBtn" class="btn-primary">Mentés</button>
+                <button id="resetEditorBtn" class="btn-secondary">Alaphelyzet</button>
+                <button id="closeEditorBtn" class="btn-secondary">Bezárás</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

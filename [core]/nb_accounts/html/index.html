@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<title>Vortex Military - Account</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app" class="hidden">
+        <div class="backdrop"></div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <div class="logo">VM</div>
+                <h1 id="panel-title">BEJELENTKEZÉS</h1>
+                <p class="subtitle">Vortex Military Access Terminal</p>
+            </div>
+
+            <div id="message-box" class="message hidden"></div>
+
+            <!-- LOGIN FORM -->
+            <form id="login-form" class="form hidden">
+                <div class="field">
+                    <label>Felhasználónév vagy Email</label>
+                    <input type="text" id="login-username" autocomplete="off">
+                </div>
+                <div class="field">
+                    <label>Jelszó</label>
+                    <input type="password" id="login-password">
+                </div>
+                <button type="submit" class="btn-primary">BELÉPÉS</button>
+            </form>
+
+            <!-- REGISTER FORM -->
+            <form id="register-form" class="form hidden">
+                <div class="field">
+                    <label>Felhasználónév</label>
+                    <input type="text" id="register-username" autocomplete="off">
+                </div>
+                <div class="field">
+                    <label>Email cím</label>
+                    <input type="text" id="register-email" autocomplete="off">
+                </div>
+                <div class="field">
+                    <label>Jelszó</label>
+                    <input type="password" id="register-password">
+                </div>
+                <div class="field">
+                    <label>Jelszó megerősítése</label>
+                    <input type="password" id="register-password-confirm">
+                </div>
+                <button type="submit" class="btn-primary">FIÓK LÉTREHOZÁSA</button>
+            </form>
+
+            <div class="panel-footer">
+                <span id="footer-text"></span>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<title>Vortex Military - Admin Panel</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app" class="hidden">
+        <div class="panel">
+            <div class="panel-header">
+                <div class="header-left">
+                    <div class="logo">VM</div>
+                    <div>
+                        <h1>ADMIN PANEL</h1>
+                        <p class="subtitle">Vortex Military // Staff eszközök</p>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <span id="myGroupBadge" class="my-group-badge"></span>
+                    <button id="dutyBtn" class="btn-duty">SZOLGÁLATBA LÉPÉS</button>
+                    <button id="refreshBtn" class="btn-icon" title="Frissítés">⟳</button>
+                    <button id="closeBtn" class="btn-icon" title="Bezárás (ESC)">✕</button>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table id="playerTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Név</th>
+                            <th>Csoport</th>
+                            <th>Műveletek</th>
+                        </tr>
+                    </thead>
+                    <tbody id="playerRows"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- RÉSZLETEK MODAL -->
+    <div id="detailsModal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="detailsTitle">Játékos részletei</h2>
+                <button id="closeDetailsBtn" class="btn-icon">✕</button>
+            </div>
+            <div class="modal-body" id="detailsBody"></div>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

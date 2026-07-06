@@ -1,0 +1,290 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Oswald:wght@600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Rajdhani', sans-serif;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    overflow: hidden;
+}
+
+.hidden { display: none !important; }
+
+/* ============================================================
+   HUD - mindig látható, nem interaktív (kivéve szerkesztő módban)
+   ============================================================ */
+#hudContainer {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+}
+
+.hud-element {
+    position: absolute;
+    transform: translate(-0%, -50%);
+    transition: opacity 0.3s ease;
+    opacity: 1;
+    user-select: none;
+}
+
+.hud-element.faded {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.hud-element.editing {
+    pointer-events: auto;
+    cursor: grab;
+}
+.hud-element.editing:active { cursor: grabbing; }
+.hud-element.editing {
+    outline: 1px dashed rgba(143, 209, 95, 0.6);
+    outline-offset: 4px;
+}
+
+/* --- BAR stílus --- */
+.hud-element[data-style="bar"] .hud-inner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(8, 10, 6, 0.6);
+    border: 1px solid rgba(106,154,58,0.3);
+    padding: 6px 10px;
+    min-width: 170px;
+}
+
+.hud-icon {
+    font-size: 15px;
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+    color: #ffffff;
+}
+
+.hud-bar-track {
+    flex: 1;
+    height: 8px;
+    background: rgba(255,255,255,0.08);
+    overflow: hidden;
+}
+
+.hud-bar-fill {
+    height: 100%;
+    transition: width 0.25s ease, background 0.25s ease;
+}
+
+.hud-number {
+    font-family: 'Oswald', sans-serif;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #e0e8d0;
+    width: 30px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+/* --- RADIAL stílus --- */
+.hud-element[data-style="radial"] .hud-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.radial-wrap {
+    position: relative;
+    width: 52px;
+    height: 52px;
+}
+
+.radial-wrap svg { transform: rotate(-90deg); }
+
+.radial-track { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 5; }
+.radial-fill { fill: none; stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 0.25s ease, stroke 0.25s ease; }
+
+.radial-center {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.radial-center .hud-icon {
+    font-size: 22px;
+    width: auto;
+    color: #ffffff;
+}
+
+.radial-percent {
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #e0e8d0;
+    text-align: center;
+}
+
+/* --- NUMERIC stílus --- */
+.hud-element[data-style="numeric"] .hud-inner {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(8, 10, 6, 0.55);
+    border-left: 3px solid var(--accent, #6a9a3a);
+    padding: 5px 10px;
+}
+
+.hud-element[data-style="numeric"] .hud-number {
+    font-size: 18px;
+    width: auto;
+}
+
+/* Szín-osztályok az aktuális állapot szerint (mindhárom stílushoz) */
+.state-good   { --accent: #6a9a3a; }
+.state-warn   { --accent: #c08a2e; }
+.state-danger { --accent: #b04040; }
+
+.state-good .hud-bar-fill, .state-good .radial-fill { background: #6a9a3a; stroke: #6a9a3a; }
+.state-warn .hud-bar-fill, .state-warn .radial-fill { background: #c08a2e; stroke: #c08a2e; }
+.state-danger .hud-bar-fill, .state-danger .radial-fill { background: #b04040; stroke: #b04040; }
+
+/* ============================================================
+   SZERKESZTŐ OVERLAY
+   ============================================================ */
+#editorOverlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; /* a HUD elemek alatta ne legyenek elkapva */
+}
+
+.editor-hint {
+    pointer-events: none;
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(8,10,6,0.85);
+    border: 1px solid #2a3a1a;
+    color: #c0d0a8;
+    font-size: 13px;
+    padding: 8px 16px;
+}
+.editor-hint kbd {
+    background: #2a3a1a;
+    color: #e0e8d0;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-family: 'Oswald', sans-serif;
+}
+
+.editor-panel {
+    pointer-events: auto; /* a panelnek viszont kattinthatónak kell lennie */
+    position: fixed;
+    top: 50%;
+    right: 30px;
+    transform: translateY(-50%);
+    width: 300px;
+    background: rgba(8,10,6,0.92);
+    border: 1px solid #2a3a1a;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    padding: 20px;
+}
+
+.editor-panel h2 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 15px;
+    letter-spacing: 1px;
+    color: #e0e8d0;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #2a3a1a;
+}
+
+.editor-section { margin-bottom: 18px; }
+
+.editor-label {
+    display: block;
+    font-size: 11px;
+    color: #7a8a6a;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+}
+
+.style-choice { display: flex; gap: 6px; }
+
+.style-btn {
+    flex: 1;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid #2a3a1a;
+    color: #c0d0a8;
+    font-size: 12px;
+    padding: 8px 4px;
+    cursor: pointer;
+}
+.style-btn.active, .style-btn:hover { background: rgba(106,154,58,0.2); border-color: #4a6a2a; color: #e0e8d0; }
+
+.visibility-list { display: flex; flex-direction: column; gap: 10px; }
+
+.visibility-item {
+    background: rgba(255,255,255,0.03);
+    padding: 8px 10px;
+}
+
+.visibility-item .vis-name {
+    font-size: 13px;
+    color: #d8e0c8;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.visibility-item .vis-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11.5px;
+    color: #8a9a7a;
+}
+
+.visibility-item select {
+    background: rgba(20,24,15,0.8);
+    border: 1px solid #2a3a1a;
+    color: #d8e0c8;
+    padding: 3px 6px;
+    font-size: 11.5px;
+}
+
+.visibility-item input[type="number"] {
+    width: 50px;
+    background: rgba(20,24,15,0.8);
+    border: 1px solid #2a3a1a;
+    color: #d8e0c8;
+    padding: 3px 6px;
+    font-size: 11.5px;
+}
+
+.editor-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.btn-primary, .btn-secondary {
+    padding: 9px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 12.5px;
+    letter-spacing: 1px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+}
+.btn-primary { background: #4a6a2a; color: #0c0e0a; }
+.btn-primary:hover { background: #5a8a34; }
+.btn-secondary { background: transparent; border: 1px solid #3a3a3a; color: #a0a0a0; }
+.btn-secondary:hover { color: #d0d0d0; border-color: #5a5a5a; }

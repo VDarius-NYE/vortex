@@ -1,0 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&display=swap');
+
+#loading-screen {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #05060a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999999;
+}
+
+.loading-content {
+    text-align: center;
+}
+
+.loading-server-name {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: 64px;
+    letter-spacing: 8px;
+    color: #e0e8d0;
+    text-shadow: 0 0 30px rgba(106,154,58,0.4);
+}
+
+.loading-text {
+    margin-top: 18px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 20px;
+    letter-spacing: 3px;
+    color: #6a9a3a;
+    text-transform: uppercase;
+}
+
+.loading-dots span {
+    opacity: 0;
+    animation: loadingDot 1.4s infinite;
+}
+.loading-dots span:nth-child(1) { animation-delay: 0s; }
+.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes loadingDot {
+    0%, 20% { opacity: 0; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+}

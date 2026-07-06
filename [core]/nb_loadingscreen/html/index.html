@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<title>Vortex Military - Loading</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="bg-grid"></div>
+
+    <div class="loading-wrap">
+        <div class="logo">VM</div>
+        <div class="server-name">VORTEX MILITARY</div>
+        <div class="status-text" id="statusText">Csatlakozás a szerverhez...</div>
+
+        <div class="progress-track">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-percent" id="progressPercent">0%</div>
+    </div>
+
+    <div class="footer-text">Vortex Military Roleplay Server</div>
+
+    <script>
+        const fill = document.getElementById('progressFill');
+        const percentText = document.getElementById('progressPercent');
+        const statusText = document.getElementById('statusText');
+
+        window.addEventListener('message', (event) => {
+            const data = event.data;
+            if (data && data.eventName === 'loadProgress') {
+                const pct = Math.round((data.loadFraction || 0) * 100);
+                fill.style.width = pct + '%';
+                percentText.textContent = pct + '%';
+            }
+        });
+
+        // A FiveM natívan CustomEvent-ként is elsütheti (verziófüggő), ezt is lefedjük
+        window.addEventListener('loadProgress', (event) => {
+            const pct = Math.round((event.detail.loadFraction || 0) * 100);
+            fill.style.width = pct + '%';
+            percentText.textContent = pct + '%';
+        });
+
+        window.addEventListener('beginMap', () => {
+            statusText.textContent = 'Világ betöltése...';
+        });
+    </script>
+</body>
+</html>
