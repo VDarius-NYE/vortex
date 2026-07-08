@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<title>Vortex Military - Kill Log</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app" class="hidden">
+        <div class="panel">
+            <div class="panel-header">
+                <div class="header-title"><i class="fa-solid fa-skull-crossbones"></i> KILL LOG</div>
+                <button id="closeBtn" class="close-btn">✕</button>
+            </div>
+
+            <div class="panel-toolbar">
+                <div class="search-wrap">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="searchInput" placeholder="Keresés név vagy ID alapján...">
+                </div>
+                <div class="entry-count" id="entryCount"></div>
+            </div>
+
+            <div class="panel-body" id="panelBody">
+                <div class="loading-state" id="loadingState">
+                    <div class="spinner"></div>
+                    <div class="loading-text">Kill Log betöltése...</div>
+                </div>
+                <div class="log-list hidden" id="logList"></div>
+                <div class="empty-state hidden" id="emptyState">Nincs találat.</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tooltip" class="tooltip hidden"></div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

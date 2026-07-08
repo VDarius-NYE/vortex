@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<title>Vortex Military - Szerver Leállás</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="shutdownPanel" class="hidden">
+        <div class="panel-corner tl"></div>
+        <div class="panel-corner tr"></div>
+        <div class="panel-corner bl"></div>
+        <div class="panel-corner br"></div>
+
+        <div class="panel-header">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>SZERVER LEÁLLÁS</span>
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+
+        <div class="countdown" id="countdown">10:00</div>
+
+        <div class="reason" id="reason"></div>
+    </div>
+
+    <audio id="countdownSound" src="sound/countdown.wav" preload="auto"></audio>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

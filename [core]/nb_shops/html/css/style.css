@@ -1,0 +1,341 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Oswald:wght@600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Rajdhani', sans-serif;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    overflow: hidden;
+}
+
+.hidden { display: none !important; }
+
+#app {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.shop-panel {
+    width: 780px;
+    max-height: 80vh;
+    background: rgba(8, 10, 6, 0.92);
+    border: 1px solid #2a3a1a;
+    box-shadow: 0 10px 50px rgba(0,0,0,0.6);
+    display: flex;
+    flex-direction: column;
+}
+
+.shop-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid #2a3a1a;
+}
+
+.shop-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 16px;
+    letter-spacing: 1.5px;
+    color: #e0e8d0;
+}
+
+.close-btn {
+    width: 30px;
+    height: 30px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid #2a3a1a;
+    color: #c0d0a8;
+    cursor: pointer;
+    font-size: 13px;
+}
+.close-btn:hover { background: rgba(176,64,64,0.2); border-color: #b04040; color: #e08080; }
+
+.shop-body {
+    display: flex;
+    gap: 16px;
+    flex: 1;
+    min-height: 0;
+    padding: 16px 16px 16px 0;
+}
+
+.items-col {
+    flex: 1;
+    padding: 2px 2px 2px 18px;
+    overflow-y: auto;
+}
+
+.items-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.shop-item {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid #22301a;
+    padding: 12px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    text-align: center;
+}
+
+.shop-item .item-icon-wrap {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2px;
+}
+
+.shop-item .item-icon-img {
+    max-width: 40px;
+    max-height: 40px;
+    object-fit: contain;
+}
+
+.shop-item .item-icon {
+    font-size: 24px;
+    color: #d8e0c8;
+}
+.shop-item .item-icon.fallback.hidden { display: none; }
+
+.shop-item .item-label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #e0e8d0;
+    min-height: 30px;
+}
+
+.shop-item .item-price {
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    color: #8fd15f;
+}
+
+.shop-item .item-price.free { color: #6ab0ff; }
+
+.qty-stepper {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+}
+
+.qty-stepper button {
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid #2a3a1a;
+    color: #c0d0a8;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0;
+}
+.qty-stepper button:hover { background: rgba(106,154,58,0.2); }
+
+.qty-stepper input {
+    flex: 1;
+    width: 0;
+    min-width: 0;
+    text-align: center;
+    background: rgba(20,24,15,0.8);
+    border: 1px solid #2a3a1a;
+    color: #d8e0c8;
+    font-size: 12.5px;
+    padding: 5px 2px;
+}
+
+.shop-item .add-to-cart-btn {
+    width: 100%;
+    margin-top: 2px;
+    background: rgba(106,154,58,0.15);
+    border: 1px solid #4a6a2a;
+    color: #8fd15f;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 6px;
+    cursor: pointer;
+}
+.shop-item .add-to-cart-btn:hover { background: rgba(106,154,58,0.3); }
+
+/* Vehicle shop kártya-nézet */
+.vehicle-card {
+    grid-column: span 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid #22301a;
+    padding: 14px 12px;
+    gap: 6px;
+}
+
+.vehicle-card .vehicle-label { font-weight: 600; color: #e0e8d0; font-size: 13.5px; }
+
+.vehicle-card .vehicle-img-wrap {
+    width: 100%;
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.03);
+    margin: 4px 0;
+}
+
+.vehicle-card .vehicle-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.vehicle-card .vehicle-img-fallback {
+    font-size: 30px;
+    color: #4a5a3a;
+}
+.vehicle-card .vehicle-img-fallback.hidden { display: none; }
+
+.vehicle-card .vehicle-price { font-family: 'Oswald', sans-serif; color: #8fd15f; font-size: 13px; }
+.vehicle-card .vehicle-price.free { color: #6ab0ff; }
+
+.vehicle-buy-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    margin-top: 4px;
+}
+
+.vehicle-buy-actions select {
+    flex: 1;
+    background: rgba(20,24,15,0.8);
+    border: 1px solid #2a3a1a;
+    color: #d8e0c8;
+    padding: 6px 4px;
+    font-size: 11.5px;
+}
+
+.vehicle-buy-actions button {
+    background: rgba(106,154,58,0.15);
+    border: 1px solid #4a6a2a;
+    color: #8fd15f;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.vehicle-buy-actions button:hover { background: rgba(106,154,58,0.3); }
+.vehicle-buy-actions button:disabled {
+    background: rgba(255,255,255,0.03);
+    border-color: #2a3a1a;
+    color: #5a6a4a;
+    cursor: not-allowed;
+}
+
+/* Kosár oszlop */
+.cart-col {
+    width: 240px;
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid #22301a;
+    box-shadow: -6px 0 20px rgba(0,0,0,0.25);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.cart-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: #7a8a6a;
+    margin-bottom: 10px;
+}
+
+.cart-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.cart-empty { color: #5a6a4a; font-size: 12px; font-style: italic; }
+
+.cart-entry {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255,255,255,0.04);
+    padding: 6px 8px;
+    font-size: 12px;
+    color: #d8e0c8;
+}
+
+.cart-entry .cart-entry-remove {
+    background: transparent;
+    border: none;
+    color: #b06060;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 0 4px;
+}
+
+.cart-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Oswald', sans-serif;
+    font-size: 13.5px;
+    color: #e0e8d0;
+    border-top: 1px solid #2a3a1a;
+    padding-top: 10px;
+    margin-bottom: 12px;
+}
+
+.payment-choice {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.payment-btn {
+    flex: 1;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid #2a3a1a;
+    color: #c0d0a8;
+    font-size: 11.5px;
+    padding: 7px 4px;
+    cursor: pointer;
+}
+.payment-btn.active { background: rgba(106,154,58,0.25); border-color: #4a6a2a; color: #e0e8d0; }
+
+.btn-primary {
+    background: #4a6a2a;
+    color: #0c0e0a;
+    border: none;
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 10px;
+    cursor: pointer;
+}
+.btn-primary:hover { background: #5a8a34; }

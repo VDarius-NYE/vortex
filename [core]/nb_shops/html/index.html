@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<title>Vortex Military - Shop</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app" class="hidden">
+        <div class="shop-panel">
+            <div class="shop-header">
+                <div class="shop-title" id="shopTitle">BOLT</div>
+                <button id="closeBtn" class="close-btn">✕</button>
+            </div>
+
+            <div class="shop-body">
+                <div class="items-col">
+                    <div class="items-grid" id="itemsGrid"></div>
+                </div>
+
+                <div class="cart-col" id="cartCol">
+                    <div class="cart-title">KOSÁR</div>
+                    <div class="cart-list" id="cartList"></div>
+                    <div class="cart-total">
+                        <span>Összesen</span>
+                        <span id="cartTotal">0 Ft</span>
+                    </div>
+                    <div class="payment-choice">
+                        <button class="payment-btn active" data-method="cash">Készpénz</button>
+                        <button class="payment-btn" data-method="card">Bankkártya</button>
+                    </div>
+                    <button id="checkoutBtn" class="btn-primary">Vásárlás</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

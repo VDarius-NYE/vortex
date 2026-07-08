@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<title>Vortex Military - Reports</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- ============================================================
+         F3 - Player report form
+         ============================================================ -->
+    <div id="reportForm" class="hidden">
+        <div class="panel form-panel">
+            <div class="panel-header">
+                <div class="header-title"><i class="fa-solid fa-flag"></i> ÚJ REPORT</div>
+                <button class="close-btn" data-close="form">✕</button>
+            </div>
+            <div class="panel-body">
+                <label class="field-label">Kategória</label>
+                <div class="category-choice" id="categoryChoice"></div>
+
+                <label class="field-label">Cím</label>
+                <input type="text" id="reportTitle" class="text-input" maxlength="100" placeholder="Rövid cím a reportnak...">
+
+                <label class="field-label">Leírás</label>
+                <textarea id="reportDescription" class="textarea-input" maxlength="1000" placeholder="Írd le részletesen mi történt..."></textarea>
+
+                <button id="submitReportBtn" class="btn-primary">BEKÜLDÉS</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         F1 - Admin panel (lista)
+         ============================================================ -->
+    <div id="adminPanel" class="hidden">
+        <div class="panel list-panel">
+            <div class="panel-header">
+                <div class="header-title"><i class="fa-solid fa-server"></i> REPORT KEZELŐ</div>
+                <button class="close-btn" data-close="panel">✕</button>
+            </div>
+            <div class="panel-body">
+                <div id="reportCards" class="report-cards"></div>
+                <div id="reportsEmpty" class="empty-state hidden">Nincs nyitott report.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         Admin - report részletek (Megtekintés)
+         ============================================================ -->
+    <div id="adminDetail" class="hidden">
+        <div class="panel detail-panel">
+            <div class="panel-header">
+                <div class="header-title" id="detailHeaderTitle">#0 - Cím</div>
+                <button class="close-btn" data-close="detail">✕</button>
+            </div>
+            <div class="panel-body">
+                <div class="detail-row"><span class="detail-label">Kategória</span><span id="detailCategory" class="detail-value"></span></div>
+                <div class="detail-row"><span class="detail-label">Státusz</span><span id="detailStatus" class="detail-value"></span></div>
+                <div class="detail-desc" id="detailDescription"></div>
+
+                <div class="detail-actions">
+                    <button id="detailClaimBtn" class="btn-primary">Elfogadás</button>
+                    <button id="detailCloseBtn" class="btn-danger">Lezárás</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         Chat ablak (player ÉS admin oldalon is ez jelenik meg,
+         összecsukható, olvasatlan-jelzővel)
+         ============================================================ -->
+    <div id="chatWindow" class="hidden">
+        <div class="chat-header" id="chatHeaderBar">
+            <div class="chat-header-title">
+                <i class="fa-solid fa-comments"></i>
+                <span id="chatTitle">Report #0</span>
+            </div>
+            <div class="chat-header-right">
+                <div id="chatBell" class="chat-bell hidden"><i class="fa-solid fa-bell"></i><span id="chatBellCount" class="chat-bell-count">0</span></div>
+                <button id="chatCollapseBtn" class="collapse-btn"><i class="fa-solid fa-chevron-up"></i></button>
+            </div>
+        </div>
+
+        <div id="chatBody" class="chat-body">
+            <div class="chat-meta">
+                <span id="chatCategory"></span> — <span id="chatStatus"></span>
+            </div>
+
+            <div id="chatMessages" class="chat-messages"></div>
+
+            <div id="chatAdminActions" class="chat-admin-actions hidden">
+                <button class="action-chip" data-action="revive">Revive</button>
+                <button class="action-chip" data-action="heal">Heal</button>
+                <button class="action-chip danger" data-action="kill">Kill</button>
+                <button class="action-chip" data-action="tp">TP</button>
+                <button class="action-chip" data-action="bring">Bring</button>
+                <button class="action-chip" data-action="freeze">Freeze</button>
+                <button class="action-chip" data-action="unfreeze">Unfreeze</button>
+                <button class="action-chip leave" id="leaveChatBtn">Csevegés elhagyása</button>
+                <button class="action-chip leave danger" id="closeChatBtn">Lezárás</button>
+            </div>
+
+            <div class="chat-focus-hint hidden" id="chatFocusHint">Nyomj <b>ALT</b>-ot az íráshoz/kattintáshoz</div>
+
+            <div class="chat-input-row">
+                <input type="text" id="chatInput" class="chat-input-field" maxlength="300" placeholder="Írj üzenetet...">
+                <button id="chatSendBtn" class="chat-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

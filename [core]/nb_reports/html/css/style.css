@@ -1,0 +1,429 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Oswald:wght@600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Rajdhani', sans-serif;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    overflow: hidden;
+}
+
+.hidden { display: none !important; }
+
+/* ============================================================
+   Modal-szerű panelek (form / lista / detail) - középen
+   ============================================================ */
+#reportForm, #adminPanel, #adminDetail {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.panel {
+    background: rgba(6, 8, 5, 0.95);
+    border: 1px solid #2a3a1a;
+    box-shadow: 0 10px 50px rgba(0,0,0,0.6);
+    display: flex;
+    flex-direction: column;
+}
+
+.form-panel { width: 460px; }
+.list-panel { width: 620px; height: 560px; }
+.detail-panel { width: 480px; }
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid #2a3a1a;
+}
+
+.header-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #8fd15f;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.close-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid #2a3a1a;
+    color: #c0d0a8;
+    cursor: pointer;
+    font-size: 12px;
+}
+.close-btn:hover { background: rgba(176,64,64,0.2); border-color: #b04040; color: #e08080; }
+
+.panel-body {
+    padding: 18px 20px;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.field-label {
+    font-size: 11px;
+    color: #7a8a6a;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 6px;
+    margin-top: 12px;
+}
+.field-label:first-child { margin-top: 0; }
+
+.category-choice { display: flex; gap: 6px; }
+
+.category-btn {
+    flex: 1;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid #2a3a1a;
+    color: #c0d0a8;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 9px 4px;
+    cursor: pointer;
+}
+.category-btn.active, .category-btn:hover { background: rgba(106,154,58,0.2); border-color: #4a6a2a; color: #e0e8d0; }
+
+.text-input, .textarea-input {
+    width: 100%;
+    background: rgba(20,24,15,0.8);
+    border: 1px solid #2a3a1a;
+    color: #d8e0c8;
+    padding: 9px 10px;
+    font-size: 13px;
+    font-family: 'Rajdhani', sans-serif;
+    outline: none;
+}
+.text-input:focus, .textarea-input:focus { border-color: #4a6a2a; }
+
+.textarea-input { resize: none; height: 110px; }
+
+.btn-primary, .btn-danger, .btn-secondary {
+    padding: 10px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 12.5px;
+    letter-spacing: 1px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    margin-top: 16px;
+}
+.btn-primary { background: #4a6a2a; color: #0c0e0a; }
+.btn-primary:hover { background: #5a8a34; }
+.btn-primary:disabled { background: #2a3320; color: #5a6a4a; cursor: not-allowed; }
+.btn-danger { background: rgba(176,64,64,0.2); border: 1px solid #b04040; color: #ff9a9a; }
+.btn-danger:hover { background: rgba(176,64,64,0.35); }
+
+/* ============================================================
+   Report kártyák (admin lista)
+   ============================================================ */
+.report-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.report-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255,255,255,0.03);
+    border-left: 3px solid #6a9a3a;
+    padding: 10px 14px;
+}
+
+.report-card.claimed { border-left-color: #d4a83c; }
+
+.card-id {
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    color: #6a7a5a;
+    width: 34px;
+    flex-shrink: 0;
+}
+
+.card-info { flex: 1; min-width: 0; }
+
+.card-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #e0e8d0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.card-sub {
+    font-size: 11px;
+    color: #7a8a6a;
+    margin-top: 2px;
+}
+
+.card-sub .card-player { color: #8fd15f; }
+.card-sub .card-category { color: #d4a83c; }
+
+.card-view-btn {
+    flex-shrink: 0;
+    background: rgba(106,154,58,0.15);
+    border: 1px solid #4a6a2a;
+    color: #8fd15f;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 7px 12px;
+    cursor: pointer;
+}
+.card-view-btn:hover { background: rgba(106,154,58,0.3); }
+
+.empty-state {
+    text-align: center;
+    color: #5a6a4a;
+    font-size: 13px;
+    font-style: italic;
+    margin-top: 40px;
+}
+
+/* ============================================================
+   Detail nézet
+   ============================================================ */
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12.5px;
+    margin-bottom: 8px;
+    color: #8a9a7a;
+}
+.detail-value { color: #e0e8d0; font-weight: 600; }
+
+.detail-desc {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid #202b14;
+    padding: 12px;
+    font-size: 13px;
+    color: #d0d8c0;
+    line-height: 1.4;
+    margin-top: 10px;
+    white-space: pre-line;
+    max-height: 160px;
+    overflow-y: auto;
+}
+
+.detail-actions {
+    display: flex;
+    gap: 8px;
+}
+.detail-actions button { flex: 1; margin-top: 16px; }
+
+/* ============================================================
+   Chat ablak - jobb lent, összecsukható
+   ============================================================ */
+#chatWindow {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 360px;
+    background: rgba(6, 8, 5, 0.95);
+    border: 1px solid #2a3a1a;
+    border-right: 3px solid #6a9a3a;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.55);
+    pointer-events: auto;
+}
+
+.chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 14px;
+    cursor: grab;
+    user-select: none;
+    border-bottom: 1px solid #2a3a1a;
+}
+.chat-header:active { cursor: grabbing; }
+
+.chat-header-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: #8fd15f;
+}
+
+.chat-header-right { display: flex; align-items: center; gap: 10px; }
+
+.chat-bell {
+    position: relative;
+    color: #d8e0c8;
+    font-size: 13px;
+}
+
+.chat-bell-count {
+    position: absolute;
+    top: -7px;
+    right: -9px;
+    background: #b04040;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    min-width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 3px;
+}
+
+.collapse-btn {
+    background: transparent;
+    border: none;
+    color: #8a9a7a;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.chat-body {
+    display: flex;
+    flex-direction: column;
+    max-height: 600px;
+}
+
+#chatWindow.collapsed .chat-body { display: none; }
+#chatWindow.collapsed .collapse-btn i { transform: rotate(180deg); }
+
+.chat-meta {
+    padding: 8px 14px;
+    font-size: 10.5px;
+    color: #6a7a5a;
+    border-bottom: 1px solid #202b14;
+}
+.chat-meta span { color: #9aaa8a; }
+
+.chat-messages {
+    padding: 10px 14px;
+    height: 340px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.chat-msg {
+    max-width: 80%;
+    padding: 7px 10px;
+    font-size: 12.5px;
+    line-height: 1.3;
+}
+
+.chat-msg.player {
+    align-self: flex-start;
+    background: rgba(255,255,255,0.05);
+    color: #d8e0c8;
+}
+
+.chat-msg.admin {
+    align-self: flex-end;
+    background: rgba(106,154,58,0.18);
+    color: #dceccb;
+}
+
+.chat-msg .msg-sender {
+    font-size: 10px;
+    font-weight: 700;
+    opacity: 0.7;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.chat-msg.system {
+    align-self: center;
+    background: transparent;
+    color: #6a7a5a;
+    font-size: 10.5px;
+    font-style: italic;
+    text-align: center;
+    max-width: 100%;
+    padding: 3px 0;
+}
+
+.chat-admin-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 8px 14px;
+    border-top: 1px solid #202b14;
+}
+
+.action-chip {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid #2a3a1a;
+    color: #c0d0a8;
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 5px 9px;
+    cursor: pointer;
+}
+.action-chip:hover { background: rgba(106,154,58,0.2); border-color: #4a6a2a; color: #e0e8d0; }
+.action-chip.danger { border-color: #b04040; color: #ff9a9a; }
+.action-chip.danger:hover { background: rgba(176,64,64,0.2); }
+.action-chip.leave { flex-basis: 100%; text-align: center; border-color: #b04040; color: #ff9a9a; }
+
+.chat-focus-hint {
+    text-align: center;
+    font-size: 10.5px;
+    color: #6a9a3a;
+    padding: 5px 0;
+    border-top: 1px solid #202b14;
+    background: rgba(106,154,58,0.05);
+}
+.chat-focus-hint b { color: #8fd15f; }
+
+.chat-input-row {
+    display: flex;
+    border-top: 1px solid #202b14;
+}
+
+.chat-input-field {
+    flex: 1;
+    background: rgba(20,24,15,0.8);
+    border: none;
+    outline: none;
+    color: #d8e0c8;
+    padding: 10px 12px;
+    font-size: 12.5px;
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.chat-send-btn {
+    width: 42px;
+    background: rgba(106,154,58,0.15);
+    border: none;
+    border-left: 1px solid #2a3a1a;
+    color: #8fd15f;
+    cursor: pointer;
+    font-size: 13px;
+}
+.chat-send-btn:hover { background: rgba(106,154,58,0.3); }
+
+.chat-messages::-webkit-scrollbar, .detail-desc::-webkit-scrollbar { width: 6px; }
+.chat-messages::-webkit-scrollbar-track, .detail-desc::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
+.chat-messages::-webkit-scrollbar-thumb, .detail-desc::-webkit-scrollbar-thumb { background: #3a5424; }

@@ -1,0 +1,108 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Oswald:wght@600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Rajdhani', sans-serif;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    overflow: hidden;
+}
+
+.hidden { display: none !important; }
+
+#zonePanel {
+    position: fixed;
+    top: 50%;
+    right: 26px;
+    transform: translateY(-50%) translateX(0);
+    width: 320px;
+    background: rgba(8, 10, 6, 0.9);
+    border: 1px solid #2a3a1a;
+    border-left: 3px solid var(--zone-accent, #6a9a3a);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.55), 0 0 24px -8px var(--zone-accent, #6a9a3a);
+    padding: 16px 18px 18px 18px;
+    animation: zoneSlideIn 0.35s ease;
+}
+
+@keyframes zoneSlideIn {
+    from { opacity: 0; transform: translateY(-50%) translateX(24px); }
+    to { opacity: 1; transform: translateY(-50%) translateX(0); }
+}
+
+#zonePanel.fade-out {
+    animation: zoneFadeOut 0.5s ease forwards;
+}
+
+@keyframes zoneFadeOut {
+    from { opacity: 1; transform: translateY(-50%) translateX(0); }
+    to { opacity: 0; transform: translateY(-50%) translateX(24px); }
+}
+
+#zonePanel.type-safe { --zone-accent: #4a90e0; }
+#zonePanel.type-faction { --zone-accent: #d4a83c; }
+#zonePanel.type-danger { --zone-accent: #c04040; }
+#zonePanel.type-admin { --zone-accent: #a04ad4; }
+
+/* Sarok-díszítés, mint a többi katonai UI-nál (interact, hud) */
+.zone-corner {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--zone-accent, #6a9a3a);
+    opacity: 0.85;
+}
+.zone-corner.tl { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+.zone-corner.tr { top: -1px; right: -1px; border-left: none; border-bottom: none; }
+.zone-corner.bl { bottom: -1px; left: -1px; border-right: none; border-top: none; }
+.zone-corner.br { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+.zone-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.zone-icon-box {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 0 10px -2px var(--zone-accent, #6a9a3a);
+}
+
+.zone-icon-box i {
+    font-size: 17px;
+    color: var(--zone-accent, #6a9a3a);
+}
+
+.zone-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: #e0e8d0;
+}
+
+.zone-divider {
+    height: 1px;
+    background: linear-gradient(90deg, var(--zone-accent, #6a9a3a), transparent);
+    opacity: 0.4;
+    margin: 12px 0 10px 0;
+}
+
+.zone-message {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: #c8d4ba;
+    font-weight: 600;
+}
