@@ -263,3 +263,55 @@ RegisterCommand('car', function(source, args)
     local model = args[1] or Config.DefaultVehicleModel
     TriggerClientEvent('nb_administration:spawnVehicle', source, model)
 end, false)
+
+-- ============================================================
+-- /tpm - a kitűzött térkép-útvonalhoz (waypoint) teleportál
+-- ============================================================
+RegisterCommand('tpm', function(source)
+    local isConsole = source == 0
+    if isConsole then return end
+    if not checkPermission(source, 'tpm') then return denyMessage(source, isConsole) end
+
+    TriggerClientEvent('nb_administration:requestWaypoint', source)
+end, false)
+
+RegisterNetEvent('nb_administration:doTpmCoords', function(x, y)
+    local source = source
+    if not checkPermission(source, 'tpm') then return end
+    TriggerClientEvent('nb_administration:doTpm', source, x, y)
+end)
+
+-- ============================================================
+-- /dv [radius] - közeli járművek törlése (radius nélkül: amiben ülsz)
+-- ============================================================
+RegisterCommand('dv', function(source, args)
+    local isConsole = source == 0
+    if isConsole then return end
+    if not checkPermission(source, 'dv') then return denyMessage(source, isConsole) end
+
+    local radius = tonumber(args[1])
+    TriggerClientEvent('nb_administration:doDeleteVehicles', source, radius)
+end, false)
+
+RegisterNetEvent('nb_administration:reportDeletedVehicles', function(count)
+    local source = source
+    exports['nb_core']:Notify(source, { message = ('%d jármű törölve.'):format(count), type = 'success' })
+end)
+
+-- ============================================================
+-- /kill [player_id] - azonnali "megölés" (generic halálként regisztrálódik)
+-- ============================================================
+RegisterCommand('kill', function(source, args)
+    local isConsole = source == 0
+    if not checkPermission(source, 'kill') then return denyMessage(source, isConsole) end
+
+    local targetId = tonumber(args[1])
+    if not targetId or not GetPlayerName(targetId) then
+        return usageMessage(source, isConsole, 'Használat: /kill [player_id]')
+    end
+
+    TriggerClientEvent('nb_administration:forceKill', targetId)
+
+    local msg = ('%s megölve.'):format(GetPlayerName(targetId))
+    if isConsole then print(msg) else exports['nb_core']:Notify(source, { message = msg, type = 'success' }) end
+end, false)

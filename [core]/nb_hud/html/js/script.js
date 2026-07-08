@@ -12,7 +12,17 @@ function nuiFetch(endpoint, data) {
 
 const hudContainer = document.getElementById('hudContainer');
 const editorOverlay = document.getElementById('editorOverlay');
-const visibilityList = document.getElementById('visibilityList');
+const editorPanelEl = document.querySelector('.editor-panel');
+const editorDragHandle = document.getElementById('editorDragHandle');
+const visListVital = document.getElementById('visListVital');
+const visListInfo = document.getElementById('visListInfo');
+const visListOther = document.getElementById('visListOther');
+
+function getCategoryList(category) {
+    if (category === 'vital') return visListVital;
+    if (category === 'info') return visListInfo;
+    return visListOther; // killfeed és bármi jövőbeli egyéb
+}
 
 let state = {
     settings: null,
@@ -33,8 +43,38 @@ function isVisible(key, value) {
     const el = state.settings.elements[key];
     if (!el) return true;
     if (state.editMode) return true; // szerkesztés közben minden látszik
+
+    const def = state.elementDefs.find((d) => d.key === key);
+
+    if (def && def.category === 'killfeed') {
+        return false; // ide már csak akkor jutunk, ha NEM szerkesztés mód - a placeholder ilyenkor mindig rejtve, a valódi killfeedet az nb_killfeed rajzolja
+    }
+
+    if (def && def.category === 'info') {
+        return !!el.alwaysVisible; // info elemeknél nincs küszöb, csak egyszerű be/ki
+    }
+
     if (el.alwaysVisible) return true;
     return value <= el.threshold;
+}
+
+function formatValue(def, raw) {
+    if (raw == null) return '-';
+
+    if (def.format === 'currency') {
+        const num = Number(raw) || 0;
+        return num.toLocaleString('hu-HU') + ' Ft';
+    }
+    if (def.format === 'number') {
+        return String(Math.round(Number(raw) || 0));
+    }
+    if (def.format === 'duration') {
+        const mins = Math.round(Number(raw) || 0);
+        const h = Math.floor(mins / 60);
+        const m = mins % 60;
+        return h > 0 ? `${h}ó ${m}p` : `${m}p`;
+    }
+    return String(raw); // 'text' vagy egyéb
 }
 
 function buildRadialSvg() {
@@ -57,9 +97,30 @@ function createElementDom(def) {
     return { wrap, inner };
 }
 
-function renderElementContent(def, value) {
+function renderElementContent(def, rawValue) {
     const { inner } = elementNodes[def.key];
+
+    if (def.category === 'killfeed') {
+        inner.className = 'hud-inner killfeed-placeholder';
+        inner.innerHTML = `
+            <div class="killfeed-ph-header"><i class="${def.icon}"></i> ${def.label}</div>
+            <div class="killfeed-ph-row"><span class="ph-killer">TesztOlo</span> megölte <span class="ph-victim">TesztAldozat</span> játékost.</div>
+        `;
+        return;
+    }
+
+    if (def.category === 'info') {
+        inner.className = 'hud-inner info-inner';
+        inner.innerHTML = `
+            <span class="hud-icon"><i class="${def.icon}"></i></span>
+            <span class="info-label">${def.label}</span>
+            <span class="info-value">${formatValue(def, rawValue)}</span>
+        `;
+        return;
+    }
+
     const style = state.settings.style;
+    const value = Math.round(Number(rawValue) || 0);
     const cls = stateClass(value);
     inner.className = 'hud-inner ' + cls;
 
@@ -100,15 +161,16 @@ function renderAll() {
         if (!elementNodes[def.key]) createElementDom(def);
 
         const { wrap } = elementNodes[def.key];
-        const posSettings = state.settings.elements[def.key];
+        const posSettings = state.settings.elements[def.key] || { xPercent: 3, yPercent: 50, alwaysVisible: false, threshold: 100 };
         wrap.style.left = posSettings.xPercent + '%';
         wrap.style.top = posSettings.yPercent + '%';
-        wrap.dataset.style = state.settings.style;
+        wrap.dataset.style = def.category === 'info' ? 'info' : state.settings.style;
 
-        const value = Math.round(state.stats[def.key] ?? 100);
-        renderElementContent(def, value);
+        const rawValue = state.stats[def.key];
+        renderElementContent(def, rawValue);
 
-        const visible = isVisible(def.key, value);
+        const checkValue = def.category === 'info' ? rawValue : Math.round(Number(rawValue) || 0);
+        const visible = isVisible(def.key, checkValue);
         wrap.classList.toggle('faded', !visible);
         wrap.classList.toggle('editing', state.editMode);
     });
@@ -153,6 +215,29 @@ document.addEventListener('mouseup', () => {
 });
 
 // ============================================================
+// Maga a szerkesztő PANEL is mozgatható (a fejlécénél fogva) - session-en
+// belül, nem perzisztens (mindig a jobb-közép alapértelmezettel nyílik meg).
+// ============================================================
+let dragPanel = null;
+
+editorDragHandle.addEventListener('mousedown', (e) => {
+    const rect = editorPanelEl.getBoundingClientRect();
+    dragPanel = { offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top };
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (!dragPanel) return;
+    editorPanelEl.style.left = (e.clientX - dragPanel.offsetX) + 'px';
+    editorPanelEl.style.top = (e.clientY - dragPanel.offsetY) + 'px';
+    editorPanelEl.style.right = 'auto';
+    editorPanelEl.style.transform = 'none';
+});
+
+document.addEventListener('mouseup', () => {
+    dragPanel = null;
+});
+
+// ============================================================
 // Szerkesztő panel
 // ============================================================
 function renderEditorPanel() {
@@ -160,9 +245,13 @@ function renderEditorPanel() {
         btn.classList.toggle('active', btn.dataset.style === state.settings.style);
     });
 
-    visibilityList.innerHTML = '';
+    visListVital.innerHTML = '';
+    visListInfo.innerHTML = '';
+    visListOther.innerHTML = '';
+
     state.elementDefs.forEach((def) => {
-        const elSettings = state.settings.elements[def.key];
+        const elSettings = state.settings.elements[def.key] || { xPercent: 3, yPercent: 50, alwaysVisible: false, threshold: 100 };
+        state.settings.elements[def.key] = elSettings;
 
         const item = document.createElement('div');
         item.className = 'visibility-item';
@@ -174,6 +263,26 @@ function renderEditorPanel() {
 
         const controls = document.createElement('div');
         controls.className = 'vis-controls';
+
+        if (def.category === 'info' || def.category === 'killfeed') {
+            // Info/killfeed elemeknél nincs küszöb-fogalom, csak egyszerű be/ki kapcsoló
+            const label = document.createElement('label');
+            label.className = 'toggle-label';
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = !!elSettings.alwaysVisible;
+            checkbox.addEventListener('change', () => {
+                elSettings.alwaysVisible = checkbox.checked;
+                renderAll();
+            });
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(' Megjelenítés'));
+            controls.appendChild(label);
+
+            item.appendChild(controls);
+            getCategoryList(def.category).appendChild(item);
+            return;
+        }
 
         const select = document.createElement('select');
         const optAlways = document.createElement('option');
@@ -209,7 +318,7 @@ function renderEditorPanel() {
         controls.appendChild(document.createTextNode('%'));
 
         item.appendChild(controls);
-        visibilityList.appendChild(item);
+        getCategoryList(def.category).appendChild(item);
     });
 }
 

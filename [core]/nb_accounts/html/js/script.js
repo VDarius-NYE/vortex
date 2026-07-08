@@ -4,6 +4,38 @@ const footerText = document.getElementById('footer-text');
 const messageBox = document.getElementById('message-box');
 const loginForm = document.getElementById('login-form');
 const registerForm = document.getElementById('register-form');
+const rememberCheckbox = document.getElementById('login-remember');
+const loginUsernameInput = document.getElementById('login-username');
+const loginPasswordInput = document.getElementById('login-password');
+
+const REMEMBER_KEY = 'nb_accounts_remember';
+
+function loadRememberedCredentials() {
+    try {
+        const raw = localStorage.getItem(REMEMBER_KEY);
+        if (!raw) return;
+        const saved = JSON.parse(raw);
+        if (saved && saved.username) {
+            loginUsernameInput.value = saved.username;
+            loginPasswordInput.value = saved.password || '';
+            rememberCheckbox.checked = true;
+        }
+    } catch (e) {
+        // rossz/sérült mentett adat - egyszerűen figyelmen kívül hagyjuk
+    }
+}
+
+function saveRememberedCredentials(username, password) {
+    try {
+        localStorage.setItem(REMEMBER_KEY, JSON.stringify({ username, password }));
+    } catch (e) {}
+}
+
+function clearRememberedCredentials() {
+    try {
+        localStorage.removeItem(REMEMBER_KEY);
+    } catch (e) {}
+}
 
 function getResourceName() {
     return (typeof GetParentResourceName === 'function') ? GetParentResourceName() : (window.location.hostname || 'nb_accounts');
@@ -47,6 +79,9 @@ window.addEventListener('message', (event) => {
         case 'open':
             app.classList.remove('hidden');
             setMode(data.mode);
+            if (data.mode === 'login') {
+                loadRememberedCredentials();
+            }
             // Visszaigazoljuk a Lua kliensnek, hogy megkaptuk és megjelenítettük.
             // Ha ez nem érne célba valamiért, a Lua oldal akkor is folytatja a
             // próbálkozást néhányszor, szóval ez csak optimalizáció (korábbi leállás).
@@ -85,6 +120,12 @@ loginForm.addEventListener('submit', (e) => {
     if (!username || !password) {
         showMessage('Töltsd ki az összes mezőt.', 'error');
         return;
+    }
+
+    if (rememberCheckbox.checked) {
+        saveRememberedCredentials(username, password);
+    } else {
+        clearRememberedCredentials();
     }
 
     fetch(`https://${getResourceName()}/login`, {

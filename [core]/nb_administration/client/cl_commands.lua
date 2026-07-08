@@ -121,3 +121,65 @@ RegisterNetEvent('nb_administration:spawnVehicle', function(model)
 
     exports['nb_core']:Notify({ message = 'Jármű lespawnolva.', type = 'success' })
 end)
+
+-- ============================================================
+-- /tpm - a kitűzött waypointhoz teleportál (a waypoint kliens oldali infó,
+-- ezért a kliens olvassa ki, és küldi vissza a koordinátát a szervernek)
+-- ============================================================
+RegisterNetEvent('nb_administration:requestWaypoint', function()
+    local blip = GetFirstBlipInfoId(8) -- 8 = waypoint blip sprite
+
+    if not DoesBlipExist(blip) then
+        exports['nb_core']:Notify({ message = 'Nincs kitűzött útvonal a térképen.', type = 'warning' })
+        return
+    end
+
+    local coords = GetBlipInfoIdCoord(blip)
+    TriggerServerEvent('nb_administration:doTpmCoords', coords.x, coords.y)
+end)
+
+RegisterNetEvent('nb_administration:doTpm', function(x, y)
+    local found, z = GetGroundZFor_3dCoord(x + 0.0, y + 0.0, 1000.0, false)
+    if not found then z = 100.0 end
+
+    local ped = PlayerPedId()
+    SetEntityCoords(ped, x, y, z + 1.0, false, false, false, false)
+end)
+
+-- ============================================================
+-- /dv [radius] - közeli járművek törlése (radius nélkül: amiben ülsz)
+-- ============================================================
+RegisterNetEvent('nb_administration:doDeleteVehicles', function(radius)
+    local ped = PlayerPedId()
+    local coords = GetEntityCoords(ped)
+    local count = 0
+
+    if radius then
+        for _, veh in ipairs(GetGamePool('CVehicle')) do
+            if DoesEntityExist(veh) then
+                local dist = #(coords - GetEntityCoords(veh))
+                if dist <= radius then
+                    SetEntityAsMissionEntity(veh, true, true)
+                    DeleteEntity(veh)
+                    count = count + 1
+                end
+            end
+        end
+    else
+        local veh = GetVehiclePedIsIn(ped, false)
+        if veh ~= 0 then
+            SetEntityAsMissionEntity(veh, true, true)
+            DeleteEntity(veh)
+            count = 1
+        end
+    end
+
+    TriggerServerEvent('nb_administration:reportDeletedVehicles', count)
+end)
+
+-- ============================================================
+-- /kill - azonnali "megölés" (a nb_death rendszer kapja el mint halált)
+-- ============================================================
+RegisterNetEvent('nb_administration:forceKill', function()
+    SetEntityHealth(PlayerPedId(), 0)
+end)

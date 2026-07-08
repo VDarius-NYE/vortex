@@ -224,7 +224,19 @@ RegisterNetEvent('nb_character:applySaved', function(payload)
     SetPedDefaultComponentVariation(ped)
     NBChar.ApplyAppearance(ped, payload.appearance)
 
-    local spawn = exports['nb_core']:GetDefaultSpawn()
+    local spawn = payload.spawn or exports['nb_core']:GetDefaultSpawn()
+    SetEntityCoordsNoOffset(ped, spawn.x, spawn.y, spawn.z, false, false, false)
+    SetEntityHeading(ped, spawn.heading)
+
+    exports['nb_core']:SetLimbo(false)
+end)
+
+-- Új karakter létrehozása után a szerver küldi vissza a tényleges spawn
+-- pontot (frakció-alapú), csak EKKOR spawnolunk ténylegesen.
+RegisterNetEvent('nb_character:spawnConfirmed', function(spawn)
+    if not spawn then spawn = exports['nb_core']:GetDefaultSpawn() end
+
+    local ped = PlayerPedId()
     SetEntityCoordsNoOffset(ped, spawn.x, spawn.y, spawn.z, false, false, false)
     SetEntityHeading(ped, spawn.heading)
 
@@ -282,12 +294,9 @@ RegisterNUICallback('save', function(data, cb)
 
     if currentMode == 'create' then
         exitCreator()
-
-        local spawn = exports['nb_core']:GetDefaultSpawn()
-        SetEntityCoordsNoOffset(ped, spawn.x, spawn.y, spawn.z, false, false, false)
-        SetEntityHeading(ped, spawn.heading)
-
-        exports['nb_core']:SetLimbo(false)
+        -- A tényleges spawn pozíciót a szerver dönti el (frakció-alapú spawn),
+        -- lásd a 'nb_character:spawnConfirmed' eseményt lentebb. Addig is a
+        -- player a limbo-ban marad (nem hívjuk itt a SetLimbo(false)-t).
     else
         -- 'edit' mód (admin által nyitva): visszaállítjuk oda, ahol a player volt
         exitCreator()

@@ -12,16 +12,26 @@ local stats = {
     armor = 0,
     hunger = 100,
     thirst = 100,
-    stamina = 100
+    stamina = 100,
+
+    cash = 0,
+    bank = 0,
+    faction = 'Nincs frakció',
+    kills = 0,
+    deaths = 0,
+    kd = '0.00',
+    playtime = 0
 }
 
 -- ============================================================
--- Publikus exportok (pl. a jövőbeli nb_basicneeds ezt hívja majd az
--- éhség/szomjúság frissítéséhez)
+-- Publikus exportok (pl. nb_basicneeds/nb_inventory/nb_core hívja ezt a
+-- statok frissítéséhez). FONTOS: itt NEM korlátozzuk 0-100 közé, mert az
+-- "info" kategóriájú elemek (pénz, playtime stb.) nem százalékos értékek -
+-- a hívó felelőssége, hogy értelmes adatot küldjön.
 -- ============================================================
 function NBHud.SetStat(name, value)
     if stats[name] == nil then return end
-    stats[name] = math.max(0, math.min(100, value))
+    stats[name] = value
 end
 
 function NBHud.GetStat(name)

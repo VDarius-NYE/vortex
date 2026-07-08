@@ -33,3 +33,7 @@ exports {
     'SetStat',
     'GetStat'
 }
+
+server_exports {
+    'GetElementSettings'
+}

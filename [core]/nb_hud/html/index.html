@@ -10,23 +10,37 @@
     <div id="hudContainer"></div>
 
     <div id="editorOverlay" class="hidden">
-        <div class="editor-hint">Húzd az elemeket a kívánt pozícióba. Nyomj <kbd>F9</kbd>-et vagy kattints a Bezárásra a kilépéshez.</div>
+        <div class="editor-hint">Húzd az elemeket a kívánt pozícióba, a panelt a fejlécénél fogva. Nyomj <kbd>F9</kbd>-et vagy kattints a Bezárásra a kilépéshez.</div>
 
         <div class="editor-panel">
-            <h2>HUD Szerkesztő</h2>
-
-            <div class="editor-section">
-                <label class="editor-label">Megjelenítési stílus</label>
-                <div class="style-choice">
-                    <button class="style-btn" data-style="bar">Csík</button>
-                    <button class="style-btn" data-style="radial">Körkörös</button>
-                    <button class="style-btn" data-style="numeric">Szám</button>
-                </div>
+            <div class="editor-drag-handle" id="editorDragHandle">
+                <h2>HUD Szerkesztő</h2>
             </div>
 
-            <div class="editor-section">
-                <label class="editor-label">Elemek láthatósága</label>
-                <div id="visibilityList" class="visibility-list"></div>
+            <div class="editor-body">
+                <div class="editor-section">
+                    <label class="editor-label">Megjelenítési stílus</label>
+                    <div class="style-choice">
+                        <button class="style-btn" data-style="bar">Csík</button>
+                        <button class="style-btn" data-style="radial">Körkörös</button>
+                        <button class="style-btn" data-style="numeric">Szám</button>
+                    </div>
+                </div>
+
+                <div class="editor-category">
+                    <div class="category-title">Vitális jelzők</div>
+                    <div id="visListVital" class="visibility-list"></div>
+                </div>
+
+                <div class="editor-category">
+                    <div class="category-title">Infó elemek</div>
+                    <div id="visListInfo" class="visibility-list"></div>
+                </div>
+
+                <div class="editor-category span-full">
+                    <div class="category-title">Egyéb</div>
+                    <div id="visListOther" class="visibility-list"></div>
+                </div>
             </div>
 
             <div class="editor-actions">

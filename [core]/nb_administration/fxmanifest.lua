@@ -9,6 +9,7 @@ version '1.0.0'
 dependency 'nb_core'
 dependency 'nb_group'
 dependency 'nb_basicneeds'
+dependency 'nb_inventory'
 
 shared_scripts {
     'config.lua'

@@ -1,0 +1,184 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Oswald:wght@600;700&display=swap');
+
+* {
+    font-family: 'Rajdhani', sans-serif;
+}
+
+/* A '7'-es szín slot szabad volt az alap chat palettájában (0-6,8,9 van
+   definiálva) - ide raktunk egy igazi neon zöldet a Support címkéhez. */
+.color-7 { color: #39ff14; }
+
+/* ============================================================
+   CHAT ABLAK (üzenetlista)
+   ============================================================ */
+.chat-window {
+    position: absolute;
+    top: 2%;
+    left: 1%;
+    width: 32%;
+    height: 24%;
+    max-width: 900px;
+
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.chat-messages {
+    position: relative;
+    height: 94%;
+    font-size: 1.7vh;
+    margin: 1.2%;
+
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+.msg {
+    font-family: 'Rajdhani', sans-serif;
+    color: #d8e0c8;
+    margin-bottom: 4px;
+    line-height: 1.4;
+
+    background: rgba(8, 10, 6, 0.78);
+    border-left: 3px solid #6a9a3a;
+    padding: 5px 12px 5px 16px;
+    box-sizing: border-box;
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.35);
+}
+
+/* Feladó neve / prefix rész az üzeneten belül (pl. rendszerüzenet forrása) */
+.msg > span > span > b,
+.msg b {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    color: #8fd15f;
+    letter-spacing: 0.3px;
+}
+
+.multiline {
+    margin-left: 0;
+    text-indent: 0;
+    white-space: pre-line;
+}
+
+/* ============================================================
+   BEVITELI MEZŐ
+   ============================================================ */
+.chat-input {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.6vh;
+    position: absolute;
+
+    top: 26.5%;
+    left: 1%;
+    width: 32%;
+    max-width: 900px;
+    box-sizing: border-box;
+}
+
+.chat-input > div.input {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+
+    background: rgba(8, 10, 6, 0.9) !important;
+    border: 1px solid #2a3a1a;
+    border-left: 3px solid #6a9a3a;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.45);
+}
+
+.chat-hide-state {
+    text-transform: uppercase;
+    margin-left: 0.05vw;
+    font-size: 1.6vh;
+    color: #7a8a6a;
+    font-family: 'Oswald', sans-serif;
+    letter-spacing: 0.5px;
+}
+
+.prefix {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.7vh;
+    height: 100%;
+    vertical-align: middle;
+    line-height: calc(1vh + 1vh + 1.85vh);
+    padding-left: 0.7vh;
+    padding-right: 0.3vh;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: #8fd15f;
+    display: inline-block;
+}
+
+.prefix.any:before { content: '['; color: #5a6a4a; }
+.prefix.any:after { content: ']'; color: #5a6a4a; }
+
+textarea {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.6vh;
+    font-weight: 600;
+    line-height: 1.85vh;
+    display: block;
+    box-sizing: content-box;
+    padding: 1vh;
+    padding-left: 0.5vh;
+    color: #e0e8d0;
+    border-width: 0;
+    height: 3.15%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    background-color: transparent;
+}
+
+textarea:focus, input:focus {
+    outline: none;
+}
+
+/* ============================================================
+   JAVASLATOK (parancs-súgó lista)
+   ============================================================ */
+.suggestions {
+    list-style-type: none;
+    padding: 0.6%;
+    padding-left: 1.4%;
+    font-size: 1.6vh;
+    box-sizing: border-box;
+    color: #d8e0c8;
+    background: rgba(8, 10, 6, 0.92) !important;
+    border: 1px solid #2a3a1a;
+    border-left: 3px solid #6a9a3a;
+    width: 100%;
+}
+
+.suggestion {
+    margin-bottom: 0.5%;
+    border-left: 2px solid transparent;
+    padding-left: 6px;
+}
+
+.suggestion:first-child {
+    border-left-color: #6a9a3a;
+}
+
+.help {
+    color: #7a8a6a;
+}
+
+.disabled {
+    color: #5a6a4a;
+}
+
+.hidden {
+    opacity: 0;
+}
+
+.hidden.animated {
+    transition: opacity 0.4s;
+}

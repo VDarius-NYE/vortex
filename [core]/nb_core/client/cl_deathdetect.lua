@@ -1,0 +1,6 @@
+-- A halál-detektálás innen ÁTKERÜLT az nb_death resource-ba (az ottani
+-- gyorsabb, Wait(0)-alapú detektálás versenyhelyzetbe került volna ezzel a
+-- lassabb, 500ms-es figyeléssel - az nb_death mindig előbb kapta el és
+-- azonnal vissza is adta a player életét, így ez itt sosem látta a
+-- "meghalást"). Az nb_death mostantól közvetlenül triggereli ugyanazokat
+-- a 'nb_core:playerKilled' / 'nb_core:playerDiedGeneric' eseményeket.

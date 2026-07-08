@@ -112,6 +112,27 @@ html, body {
     box-shadow: 0 0 8px rgba(106,154,58,0.35);
 }
 
+.field-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.field-checkbox input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    accent-color: #6a9a3a;
+    cursor: pointer;
+}
+
+.field-checkbox label {
+    font-size: 13px;
+    color: #b0c0a0;
+    cursor: pointer;
+    user-select: none;
+}
+
 .btn-primary {
     margin-top: 8px;
     background: #4a6a2a;

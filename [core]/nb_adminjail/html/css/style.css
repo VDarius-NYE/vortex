@@ -1,0 +1,166 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Oswald:wght@600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Rajdhani', sans-serif;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    overflow: hidden;
+}
+
+.hidden { display: none !important; }
+
+/* ============================================================
+   LOADING SCREEN - ugyanaz a stílus mint a csatlakozási loadingscreen-nél
+   ============================================================ */
+#loadingScreen {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: #05060a;
+}
+
+.bg-grid {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+        radial-gradient(ellipse at 50% 40%, rgba(74,106,42,0.12) 0%, rgba(5,6,10,0) 60%),
+        linear-gradient(rgba(106,154,58,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(106,154,58,0.04) 1px, transparent 1px);
+    background-size: 100% 100%, 48px 48px, 48px 48px;
+}
+
+.loading-wrap {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    width: 480px;
+}
+
+.logo {
+    display: inline-block;
+    width: 56px;
+    height: 56px;
+    line-height: 56px;
+    background: #4a6a2a;
+    color: #05060a;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    clip-path: polygon(15% 0, 100% 0, 85% 100%, 0 100%);
+    margin-bottom: 18px;
+}
+
+.server-name {
+    font-family: 'Oswald', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 6px;
+    color: #e0e8d0;
+    margin-bottom: 10px;
+}
+
+.status-text {
+    font-size: 14px;
+    color: #8a9a7a;
+    letter-spacing: 0.5px;
+    margin-bottom: 22px;
+}
+
+.loading-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    overflow: hidden;
+}
+
+.loading-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #4a6a2a, #8fd15f);
+    animation: loadingFill 5s linear forwards;
+}
+
+@keyframes loadingFill {
+    from { width: 0%; }
+    to { width: 100%; }
+}
+
+/* ============================================================
+   JAIL INFO PANEL - jobb lent
+   ============================================================ */
+#jailPanel {
+    position: fixed;
+    bottom: 26px;
+    right: 26px;
+    width: 300px;
+    background: rgba(8, 10, 6, 0.9);
+    border: 1px solid #2a3a1a;
+    border-right: 3px solid #b04040;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.55);
+    padding: 14px 18px 16px 18px;
+}
+
+.panel-corner {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #b04040;
+    opacity: 0.85;
+}
+.panel-corner.tl { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+.panel-corner.tr { top: -1px; right: -1px; border-left: none; border-bottom: none; }
+.panel-corner.bl { bottom: -1px; left: -1px; border-right: none; border-top: none; }
+.panel-corner.br { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+.jail-header {
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #ff8080;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(176,64,64,0.35);
+}
+
+.jail-header i { color: #b04040; }
+
+.jail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 6px;
+    font-size: 12.5px;
+}
+
+.jail-label {
+    color: #7a8a6a;
+    text-transform: uppercase;
+    font-size: 10.5px;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+}
+
+.jail-value {
+    color: #e0e8d0;
+    font-weight: 600;
+    text-align: right;
+}
+
+#jailCountdown {
+    font-family: 'Oswald', sans-serif;
+    color: #ff9a9a;
+    font-size: 15px;
+}

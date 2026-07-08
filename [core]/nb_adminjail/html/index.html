@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<title>Vortex Military - AdminJail</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Loading screen (5mp, belépéskor / login-kor ha aktív az adminjail) -->
+    <div id="loadingScreen" class="hidden">
+        <div class="bg-grid"></div>
+        <div class="loading-wrap">
+            <div class="logo">VM</div>
+            <div class="server-name">VORTEX MILITARY</div>
+            <div class="status-text">AdminJail betöltése...</div>
+            <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+        </div>
+    </div>
+
+    <!-- Jail info panel (jobb lent) -->
+    <div id="jailPanel" class="hidden">
+        <div class="panel-corner tl"></div>
+        <div class="panel-corner tr"></div>
+        <div class="panel-corner bl"></div>
+        <div class="panel-corner br"></div>
+
+        <div class="jail-header">
+            <i class="fa-solid fa-lock"></i>
+            <span>ADMINJAIL</span>
+        </div>
+
+        <div class="jail-row">
+            <span class="jail-label">Hátralévő idő:</span>
+            <span class="jail-value" id="jailCountdown">00:00</span>
+        </div>
+        <div class="jail-row">
+            <span class="jail-label">Indok:</span>
+            <span class="jail-value" id="jailReason"></span>
+        </div>
+        <div class="jail-row">
+            <span class="jail-label">Admin:</span>
+            <span class="jail-value" id="jailAdmin"></span>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

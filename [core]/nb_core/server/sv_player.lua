@@ -18,6 +18,9 @@ function Player.New(source, identifier, identifierType, userData)
         username = userData.username,
         email = userData.email,
         playtime = userData.playtime or 0,
+        bank = userData.bank or 0,
+        kills = userData.kills or 0,
+        deaths = userData.deaths or 0,
         loggedIn = false,       -- csak akkor true, ha a bejelentkezés (nb_accounts) megtörtént
         characterLoaded = false, -- csak akkor true, ha a karakter (nb_character) betöltődött
         faction = nil,          -- ide köt majd be a jövőbeli nb_factions
@@ -46,10 +49,13 @@ function Player.New(source, identifier, identifierType, userData)
         self.PlayerData.characterLoaded = state
     end
 
-    -- DB mentés (playtime, egyéb core szintű mezők)
+    -- DB mentés (playtime, bank, kills/deaths, egyéb core szintű mezők)
     function self.Functions.Save()
-        MySQL.update('UPDATE nb_users SET playtime = ? WHERE identifier = ?', {
+        MySQL.update('UPDATE nb_users SET playtime = ?, bank = ?, kills = ?, deaths = ? WHERE identifier = ?', {
             self.PlayerData.playtime,
+            self.PlayerData.bank,
+            self.PlayerData.kills,
+            self.PlayerData.deaths,
             self.PlayerData.identifier
         })
     end

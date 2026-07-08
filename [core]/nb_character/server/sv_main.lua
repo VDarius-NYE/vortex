@@ -16,6 +16,21 @@ CreateThread(function()
     end)
 end)
 
+-- Frakció-alapú spawn pont lekérése (ha az nb_factions fut és a playernek
+-- van saját frakció-spawnja), egyébként visszaesik az nb_core alap spawnjára.
+local function getSpawnPoint(source)
+    local spawn = nil
+    pcall(function()
+        spawn = exports['nb_factions']:GetSpawnPoint(source)
+    end)
+    if not spawn then
+        pcall(function()
+            spawn = exports['nb_core']:GetDefaultSpawn()
+        end)
+    end
+    return spawn
+end
+
 -- Amint sikeresen bejelentkezett valaki (nb_accounts), eldöntjük: már van mentett
 -- karaktere (csendben alkalmazzuk és spawnolunk), vagy nincs (megnyitjuk a creator-t).
 AddEventHandler('nb_accounts:playerLoggedIn', function(source)
@@ -30,7 +45,8 @@ AddEventHandler('nb_accounts:playerLoggedIn', function(source)
             exports['nb_core']:SetCharacterLoaded(source, true)
             TriggerClientEvent('nb_character:applySaved', source, {
                 model = row.model,
-                appearance = json.decode(row.appearance)
+                appearance = json.decode(row.appearance),
+                spawn = getSpawnPoint(source)
             })
         else
             TriggerClientEvent('nb_character:openCreator', source, { mode = 'create', appearance = nil })
@@ -63,6 +79,10 @@ RegisterNetEvent('nb_character:save', function(payload)
         type = 'success',
         duration = 4000
     })
+
+    -- Új karakter létrehozásakor a kliens megvárja ezt az eseményt, mielőtt
+    -- ténylegesen spawnolna (a spawn pontot MINDIG a szerver dönti el).
+    TriggerClientEvent('nb_character:spawnConfirmed', source, getSpawnPoint(source))
 
     print(('^2[nb_character]^7 Karakter elmentve: %s'):format(playerData.identifier))
 end)

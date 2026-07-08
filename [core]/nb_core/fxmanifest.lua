@@ -17,12 +17,16 @@ server_scripts {
     'server/sv_functions.lua',
     'server/sv_callbacks.lua',
     'server/sv_notify.lua',
+    'server/sv_stats.lua',
     'server/sv_main.lua'
 }
 
 client_scripts {
     'client/cl_functions.lua',
     'client/cl_notify.lua',
+    'client/cl_deathdetect.lua',
+    'client/cl_healthregen.lua',
+    'client/cl_friendlyfire.lua',
     'client/cl_main.lua'
 }
 
@@ -52,5 +56,12 @@ server_exports {
     'GetPrimaryIdentifier',
     'CreateCallback',
     'TriggerClientCallback',
-    'Notify'
+    'Notify',
+    'GetBank',
+    'SetBank',
+    'AddBank',
+    'RemoveBank',
+    'GetKills',
+    'GetDeaths',
+    'GetDefaultSpawn'
 }

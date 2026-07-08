@@ -19,7 +19,14 @@ CreateThread(function()
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ]], {}, function()
-            NB.Debug('nb_users tábla ellenőrizve/létrehozva.')
+            MySQL.query([[
+                ALTER TABLE nb_users
+                ADD COLUMN IF NOT EXISTS bank INT NOT NULL DEFAULT 0,
+                ADD COLUMN IF NOT EXISTS kills INT NOT NULL DEFAULT 0,
+                ADD COLUMN IF NOT EXISTS deaths INT NOT NULL DEFAULT 0
+            ]], {}, function()
+                NB.Debug('nb_users tábla ellenőrizve/létrehozva.')
+            end)
         end)
     end)
 end)
@@ -99,3 +106,8 @@ NB.CreateCallback('nb_core:isLoggedIn', function(source, cb)
     local player = NB.Players[source]
     cb(player and player.PlayerData.loggedIn or false)
 end)
+
+-- Szerver oldali export (a kliens oldali mellett), hogy más resource-ok
+-- SZERVERRŐL is le tudják kérdezni az alap spawn pontot (pl. nb_factions
+-- a frakció-alapú spawn fallback-jéhez).
+exports('GetDefaultSpawn', function() return Config.DefaultSpawn end)

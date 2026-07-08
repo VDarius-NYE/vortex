@@ -44,8 +44,22 @@ end
 
 exports('LogKick', logKick)
 
+local function calcKD(kills, deaths)
+    kills = kills or 0
+    deaths = deaths or 0
+    if deaths <= 0 then
+        return kills > 0 and string.format('%.2f', kills) or '0.00'
+    end
+    local ratio = kills / deaths
+    if ratio < 0 then ratio = 0 end
+    return string.format('%.2f', ratio)
+end
+
 -- ============================================================
--- Teljes játékos-részletek lekérdezése (csak online játékosra)
+-- Teljes játékos-részletek lekérdezése (csak online játékosra). MINDIG
+-- élő (aktuális, memóriában lévő) adatot ad vissza minden olyan mezőnél,
+-- ami menet közben is változhat (playtime, bank, kills/deaths, cash) -
+-- nem a (néha percekkel elmaradó) adatbázis-értéket.
 -- ============================================================
 local function sendPlayerDetails(source, targetId)
     if not exports['nb_group']:HasPermission(source, Config.Permissions.viewDetails) then
@@ -73,6 +87,12 @@ local function sendPlayerDetails(source, targetId)
     local bans = MySQL.query.await('SELECT reason, banned_by_name, banned_at, expires_at FROM nb_bans WHERE identifier = ? ORDER BY banned_at DESC', { identifier }) or {}
     local kicks = MySQL.query.await('SELECT admin_name, reason, created_at FROM nb_kicks WHERE identifier = ? ORDER BY created_at DESC', { identifier }) or {}
 
+    -- Élő készpénz lekérdezése az nb_inventory-ból (pcall, hátha az a resource nem fut)
+    local cash = nil
+    pcall(function()
+        cash = exports['nb_inventory']:GetItemCount(targetId, 'cash')
+    end)
+
     TriggerClientEvent('nb_administration:showDetails', source, {
         targetId = targetId,
         account = {
@@ -81,7 +101,7 @@ local function sendPlayerDetails(source, targetId)
             steam = userRow.steam,
             username = userRow.username,
             email = userRow.email,
-            playtime = userRow.playtime or 0,
+            playtime = playerData.playtime or 0,  -- ÉLŐ adat, nem a (percekkel elmaradó) DB érték
             created_at = userRow.created_at,
             updated_at = userRow.updated_at,
             last_login = userRow.last_login,
@@ -93,12 +113,13 @@ local function sendPlayerDetails(source, targetId)
             updated_at = charRow.updated_at
         } or nil,
         economy = {
-            cash = nil,   -- későbbi nb_inventory/economy rendszer tölti majd fel
-            bank = nil
+            cash = cash,
+            bank = playerData.bank or 0
         },
         stats = {
-            kills = nil,  -- későbbi PVP-statisztika rendszer tölti majd fel
-            deaths = nil
+            kills = playerData.kills or 0,
+            deaths = playerData.deaths or 0,
+            kd = calcKD(playerData.kills, playerData.deaths)
         },
         warns = warns,
         bans = bans,

@@ -19,6 +19,9 @@ Config.Permissions = {
     viewDetails = 'support',
     warn = 'support',
     setarmor = 'support',
+    tpm = 'support',
+    dv = 'admin',
+    kill = 'admin',
     -- a warn törlése mindig csak owner-nek (nincs külön kulcs, direkt owner-ellenőrzés történik)
 }
 

@@ -1,0 +1,116 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Oswald:wght@600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    overflow: hidden;
+}
+
+#container {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+}
+
+.interact-point {
+    position: absolute;
+    transform: translate(-50%, -50%);
+}
+
+/* ---- Távolról: pulzáló zöld neon pont, gyűrűvel ---- */
+.interact-dot-wrap {
+    position: relative;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.interact-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #6aff4a;
+    box-shadow: 0 0 8px 2px rgba(106,255,74,0.9), 0 0 18px 6px rgba(106,255,74,0.35);
+    z-index: 2;
+}
+
+.interact-ring {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(106,255,74,0.7);
+    animation: ringPulse 1.6s ease-out infinite;
+}
+
+@keyframes ringPulse {
+    0% { transform: scale(0.4); opacity: 1; }
+    80% { opacity: 0; }
+    100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* ---- Közelről: katonai stílusú célkereszt-keret + felirat ---- */
+.interact-near {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.interact-frame {
+    position: relative;
+    width: 42px;
+    height: 42px;
+}
+
+.interact-frame .corner {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border: 2px solid #8fff6a;
+}
+.interact-frame .corner.tl { top: 0; left: 0; border-right: none; border-bottom: none; }
+.interact-frame .corner.tr { top: 0; right: 0; border-left: none; border-bottom: none; }
+.interact-frame .corner.bl { bottom: 0; left: 0; border-right: none; border-top: none; }
+.interact-frame .corner.br { bottom: 0; right: 0; border-left: none; border-top: none; }
+
+.interact-frame .key-box {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 26px;
+    height: 26px;
+    background: rgba(8,10,6,0.9);
+    border: 1px solid rgba(143,255,106,0.6);
+    box-shadow: 0 0 10px rgba(106,255,74,0.45);
+    color: #eafce0;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.interact-label {
+    background: rgba(8,10,6,0.88);
+    border: 1px solid rgba(106,255,74,0.35);
+    border-left: 3px solid #6aff4a;
+    color: #e0ecd8;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    padding: 4px 12px;
+    white-space: nowrap;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+}

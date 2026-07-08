@@ -247,7 +247,7 @@ function renderDetails(details) {
     charSection.appendChild(charGrid);
     detailsBody.appendChild(charSection);
 
-    // ---- Gazdaság + statok (placeholder, későbbi rendszer) ----
+    // ---- Gazdaság + statok (élő adatok) ----
     const statsSection = document.createElement('div');
     statsSection.className = 'detail-section';
     statsSection.innerHTML = '<h3>Gazdaság &amp; Statisztika</h3>';
@@ -255,10 +255,10 @@ function renderDetails(details) {
     statBoxes.className = 'stat-boxes';
 
     const boxes = [
-        ['Készpénz', details.economy?.cash],
-        ['Banki egyenleg', details.economy?.bank],
+        ['Készpénz', details.economy?.cash != null ? `${details.economy.cash} Ft` : null],
+        ['Banki egyenleg', details.economy?.bank != null ? `${details.economy.bank} Ft` : null],
         ['Kill / Death', (details.stats?.kills != null && details.stats?.deaths != null) ? `${details.stats.kills} / ${details.stats.deaths}` : null],
-        ['K/D arány', null]
+        ['K/D arány', details.stats?.kd != null ? details.stats.kd : null]
     ];
     boxes.forEach(([label, value]) => {
         const box = document.createElement('div');
