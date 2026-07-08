@@ -8,31 +8,33 @@
 </head>
 <body>
     <div id="app" class="hidden">
-        <div class="inventory-wrap">
-            <div class="panel" id="playerPanel">
-                <div class="panel-header">
-                    <div class="panel-title">SAJÁT INVENTORY</div>
-                </div>
-                <div class="panel-body">
+        <div class="panel" id="playerPanel">
+            <div class="panel-header" data-panel="player">
+                <div class="panel-title">SAJÁT INVENTORY</div>
+            </div>
+            <div class="panel-body">
+                <div class="grid-scroll">
                     <div class="grid" id="playerGrid"></div>
-                    <div class="weight-wrap">
-                        <div class="weight-label" id="playerWeightLabel">0/50kg</div>
-                        <div class="weight-track"><div class="weight-fill" id="playerWeightFill"></div></div>
-                    </div>
                 </div>
             </div>
+            <div class="weight-wrap">
+                <div class="weight-label" id="playerWeightLabel">0/50kg</div>
+                <div class="weight-track"><div class="weight-fill" id="playerWeightFill"></div></div>
+            </div>
+        </div>
 
-            <div class="panel hidden" id="stashPanel">
-                <div class="panel-header">
-                    <div class="panel-title" id="stashTitle">STASH</div>
-                </div>
-                <div class="panel-body">
+        <div class="panel hidden" id="stashPanel">
+            <div class="panel-header" data-panel="stash">
+                <div class="panel-title" id="stashTitle">STASH</div>
+            </div>
+            <div class="panel-body">
+                <div class="grid-scroll">
                     <div class="grid" id="stashGrid"></div>
-                    <div class="weight-wrap">
-                        <div class="weight-label" id="stashWeightLabel">0/0kg</div>
-                        <div class="weight-track"><div class="weight-fill" id="stashWeightFill"></div></div>
-                    </div>
                 </div>
+            </div>
+            <div class="weight-wrap">
+                <div class="weight-label" id="stashWeightLabel">0/0kg</div>
+                <div class="weight-track"><div class="weight-fill" id="stashWeightFill"></div></div>
             </div>
         </div>
 
@@ -42,6 +44,7 @@
             <button class="action-btn" id="halfBtn">Felezés</button>
             <input type="number" id="customAmountInput" class="amount-input" min="1" placeholder="Db">
             <button class="action-btn" id="customSplitBtn">Szétválasztás</button>
+            <button class="action-btn danger" id="dropBtn">Eldobás</button>
             <button class="action-btn secondary" id="deselectBtn">Bezárás</button>
         </div>
 
@@ -49,6 +52,7 @@
     </div>
 
     <div id="tooltip" class="tooltip hidden"></div>
+    <div id="popupStack" class="popup-stack"></div>
 
     <script src="js/script.js"></script>
 </body>

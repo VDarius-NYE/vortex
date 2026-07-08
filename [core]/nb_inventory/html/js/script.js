@@ -13,6 +13,7 @@ function nuiFetch(endpoint, data) {
 const app = document.getElementById('app');
 const tooltip = document.getElementById('tooltip');
 const actionBar = document.getElementById('actionBar');
+const popupStack = document.getElementById('popupStack');
 
 let state = {
     player: null,
@@ -20,7 +21,8 @@ let state = {
     selected: null // { side, slot, stashId }
 };
 
-let draggedFrom = null;
+let hoveredSlot = null;
+let dragState = null; // { side, slot, stashId, ghostEl }
 
 function itemTypeClass(itemType) {
     if (itemType === 'money') return 'money';
@@ -28,6 +30,61 @@ function itemTypeClass(itemType) {
     if (itemType === 'ammo') return 'ammo';
     return '';
 }
+
+// ============================================================
+// Egér-alapú drag & drop (nem natív HTML5 DnD, mert az nem megbízható
+// ebben a CEF környezetben - ugyanaz a technika, mint a mozgatható paneleknél)
+// ============================================================
+function startCustomDrag(e, side, slotIndex, data, stashId) {
+    e.preventDefault();
+
+    const ghost = document.createElement('div');
+    ghost.className = 'drag-ghost';
+    const img = document.createElement('img');
+    img.src = `assets/items/${data.item.toLowerCase()}.png`;
+    img.onerror = () => { img.style.display = 'none'; };
+    ghost.appendChild(img);
+    document.body.appendChild(ghost);
+
+    dragState = { side, slot: slotIndex, stashId, ghostEl: ghost };
+    moveGhost(e);
+}
+
+function moveGhost(e) {
+    if (!dragState) return;
+    dragState.ghostEl.style.left = e.clientX + 'px';
+    dragState.ghostEl.style.top = e.clientY + 'px';
+}
+
+document.addEventListener('mousemove', (e) => {
+    if (dragState) moveGhost(e);
+});
+
+document.addEventListener('mouseup', () => {
+    if (!dragState) return;
+
+    dragState.ghostEl.remove();
+
+    if (hoveredSlot) {
+        nuiFetch('moveItem', {
+            fromSide: dragState.side,
+            fromSlot: dragState.slot,
+            toSide: hoveredSlot.side,
+            toSlot: hoveredSlot.slot,
+            stashId: (dragState.stashId || hoveredSlot.stashId)
+        });
+    } else {
+        // Az inventory-n KÍVÜLRE ejtette -> eldobja az itemet
+        nuiFetch('dropItem', {
+            side: dragState.side,
+            slot: dragState.slot,
+            stashId: dragState.stashId
+        });
+    }
+
+    document.querySelectorAll('.slot.drag-over').forEach((el) => el.classList.remove('drag-over'));
+    dragState = null;
+});
 
 function buildSlot(side, slotIndex, data, stashId) {
     const slot = document.createElement('div');
@@ -40,9 +97,25 @@ function buildSlot(side, slotIndex, data, stashId) {
     slot.dataset.slot = slotIndex;
 
     if (data) {
-        const icon = document.createElement('i');
-        icon.className = `slot-icon ${data.icon} ${itemTypeClass(data.itemType)}`;
-        slot.appendChild(icon);
+        const iconWrap = document.createElement('div');
+        iconWrap.className = 'slot-icon-wrap';
+
+        const img = document.createElement('img');
+        img.className = 'slot-icon-img';
+        img.src = `assets/items/${data.item.toLowerCase()}.png`;
+        img.alt = data.label;
+
+        const fallback = document.createElement('i');
+        fallback.className = `slot-icon fallback hidden ${data.icon} ${itemTypeClass(data.itemType)}`;
+
+        img.addEventListener('error', () => {
+            img.classList.add('hidden');
+            fallback.classList.remove('hidden');
+        });
+
+        iconWrap.appendChild(img);
+        iconWrap.appendChild(fallback);
+        slot.appendChild(iconWrap);
 
         if (data.quantity > 1) {
             const qty = document.createElement('div');
@@ -62,9 +135,9 @@ function buildSlot(side, slotIndex, data, stashId) {
             slot.appendChild(durTrack);
         }
 
-        slot.draggable = true;
-        slot.addEventListener('dragstart', () => {
-            draggedFrom = { side, slot: slotIndex, stashId };
+        slot.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return; // csak bal klikk indítja a húzást
+            startCustomDrag(e, side, slotIndex, data, stashId);
         });
 
         slot.addEventListener('mouseenter', (e) => showTooltip(e, data));
@@ -74,27 +147,20 @@ function buildSlot(side, slotIndex, data, stashId) {
         slot.addEventListener('click', () => selectSlot(side, slotIndex, data, stashId));
     }
 
-    slot.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        slot.classList.add('drag-over');
+    // Hover-követés a saját (egér-alapú) drag rendszerhez - MINDEN slotra kell,
+    // hogy üres slotba is lehessen ejteni.
+    slot.addEventListener('mouseenter', () => {
+        hoveredSlot = { side, slot: slotIndex, stashId };
+        if (dragState) slot.classList.add('drag-over');
     });
-    slot.addEventListener('dragleave', () => slot.classList.remove('drag-over'));
-    slot.addEventListener('drop', (e) => {
-        e.preventDefault();
+    slot.addEventListener('mouseleave', () => {
+        if (hoveredSlot && hoveredSlot.side === side && hoveredSlot.slot === slotIndex) {
+            hoveredSlot = null;
+        }
         slot.classList.remove('drag-over');
-        if (!draggedFrom) return;
-
-        nuiFetch('moveItem', {
-            fromSide: draggedFrom.side,
-            fromSlot: draggedFrom.slot,
-            toSide: side,
-            toSlot: slotIndex,
-            stashId: (draggedFrom.stashId || stashId)
-        });
-        draggedFrom = null;
     });
 
-    if (side === slot.dataset.side && state.selected && state.selected.side === side && state.selected.slot === slotIndex) {
+    if (state.selected && state.selected.side === side && state.selected.slot === slotIndex) {
         slot.classList.add('selected');
     }
 
@@ -119,7 +185,7 @@ function renderWeight(labelId, fillId, payload) {
 
     label.textContent = `${Math.round(payload.weight)}/${payload.maxWeight}kg`;
     const pct = Math.min(100, (payload.weight / payload.maxWeight) * 100);
-    fill.style.height = pct + '%';
+    fill.style.width = pct + '%';
 
     fill.classList.remove('warn', 'danger');
     if (pct >= 90) fill.classList.add('danger');
@@ -133,7 +199,10 @@ function renderAll() {
     const stashPanel = document.getElementById('stashPanel');
     if (state.stash) {
         stashPanel.classList.remove('hidden');
-        document.getElementById('stashTitle').textContent = `STASH #${state.stash.stashId} — ${state.stash.factionId || ''}`;
+        const title = state.stash.factionId === 'GROUND'
+            ? `FÖLD — #${state.stash.stashId}`
+            : `STASH #${state.stash.stashId} — ${state.stash.factionId || ''}`;
+        document.getElementById('stashTitle').textContent = title;
         renderGrid('stashGrid', 'stash', state.stash, state.stash.stashId);
         renderWeight('stashWeightLabel', 'stashWeightFill', state.stash);
     } else {
@@ -202,7 +271,9 @@ document.getElementById('deselectBtn').addEventListener('click', deselect);
 
 document.getElementById('useBtn').addEventListener('click', () => {
     if (!state.selected) return;
-    nuiFetch('useItem', { side: state.selected.side, slot: state.selected.slot, stashId: state.selected.stashId });
+    const payload = state.selected.side === 'stash' ? state.stash : state.player;
+    const data = payload.slots[String(state.selected.slot)];
+    nuiFetch('useItem', { side: state.selected.side, slot: state.selected.slot, stashId: state.selected.stashId, item: data ? data.item : null });
     deselect();
 });
 
@@ -227,6 +298,12 @@ document.getElementById('customSplitBtn').addEventListener('click', () => {
     deselect();
 });
 
+document.getElementById('dropBtn').addEventListener('click', () => {
+    if (!state.selected) return;
+    nuiFetch('dropItem', { side: state.selected.side, slot: state.selected.slot, stashId: state.selected.stashId });
+    deselect();
+});
+
 document.getElementById('closeBtn').addEventListener('click', () => {
     nuiFetch('closeInventory', {});
     app.classList.add('hidden');
@@ -240,6 +317,109 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ============================================================
+// Mozgatható panelek (saját inventory + stash külön-külön)
+// ============================================================
+let dragPanel = null;
+
+function makeDraggable(panelEl, headerEl, panelKey) {
+    headerEl.addEventListener('mousedown', (e) => {
+        const rect = panelEl.getBoundingClientRect();
+        dragPanel = {
+            el: panelEl,
+            key: panelKey,
+            offsetX: e.clientX - rect.left,
+            offsetY: e.clientY - rect.top
+        };
+    });
+}
+
+document.addEventListener('mousemove', (e) => {
+    if (!dragPanel) return;
+    const x = e.clientX - dragPanel.offsetX;
+    const y = e.clientY - dragPanel.offsetY;
+    dragPanel.el.style.left = x + 'px';
+    dragPanel.el.style.top = y + 'px';
+});
+
+document.addEventListener('mouseup', () => {
+    if (!dragPanel) return;
+    const rect = dragPanel.el.getBoundingClientRect();
+    nuiFetch('savePosition', { panel: dragPanel.key, x: rect.left, y: rect.top });
+    dragPanel = null;
+});
+
+function applyPanelPosition(panelEl, pos, defaultLeft, defaultTop) {
+    if (pos && typeof pos.x === 'number' && typeof pos.y === 'number') {
+        panelEl.style.left = pos.x + 'px';
+        panelEl.style.top = pos.y + 'px';
+    } else {
+        panelEl.style.left = defaultLeft + 'px';
+        panelEl.style.top = defaultTop + 'px';
+    }
+}
+
+const playerPanelEl = document.getElementById('playerPanel');
+const stashPanelEl = document.getElementById('stashPanel');
+makeDraggable(playerPanelEl, playerPanelEl.querySelector('.panel-header'), 'player');
+makeDraggable(stashPanelEl, stashPanelEl.querySelector('.panel-header'), 'stash');
+
+// ============================================================
+// Popup értesítések (kapott / használt / eldobott item)
+// ============================================================
+const MAX_POPUPS = 5;
+let activePopups = [];
+
+function addPopup(data) {
+    if (activePopups.length >= MAX_POPUPS) {
+        const oldest = activePopups.shift();
+        if (oldest.timeoutId) clearTimeout(oldest.timeoutId);
+        oldest.el.remove();
+    }
+
+    const el = document.createElement('div');
+    el.className = 'popup-item';
+
+    const iconWrap = document.createElement('div');
+    iconWrap.className = 'popup-icon-wrap';
+
+    const img = document.createElement('img');
+    img.className = 'popup-icon-img';
+    img.src = `assets/items/${(data.item || '').toLowerCase()}.png`;
+
+    const fallback = document.createElement('i');
+    fallback.className = 'fa-solid fa-cube popup-icon-fallback hidden';
+
+    img.addEventListener('error', () => {
+        img.classList.add('hidden');
+        fallback.classList.remove('hidden');
+    });
+
+    iconWrap.appendChild(img);
+    iconWrap.appendChild(fallback);
+
+    const text = document.createElement('div');
+    text.className = 'popup-text';
+    text.textContent = data.text;
+
+    el.appendChild(iconWrap);
+    el.appendChild(text);
+    popupStack.appendChild(el);
+
+    requestAnimationFrame(() => el.classList.add('show'));
+
+    const entry = { el, timeoutId: null };
+    entry.timeoutId = setTimeout(() => {
+        el.classList.remove('show');
+        setTimeout(() => {
+            el.remove();
+            activePopups = activePopups.filter((p) => p !== entry);
+        }, 300);
+    }, 4000);
+
+    activePopups.push(entry);
+}
+
+// ============================================================
 // Lua -> JS üzenetek
 // ============================================================
 window.addEventListener('message', (event) => {
@@ -250,6 +430,10 @@ window.addEventListener('message', (event) => {
         state.stash = data.stash || null;
         state.selected = null;
         actionBar.classList.add('hidden');
+
+        const positions = data.positions || {};
+        applyPanelPosition(playerPanelEl, positions.player, 60, Math.round(window.innerHeight / 2 - 260));
+        applyPanelPosition(stashPanelEl, positions.stash, 470, Math.round(window.innerHeight / 2 - 260));
 
         app.classList.remove('hidden');
         renderAll();
@@ -262,5 +446,7 @@ window.addEventListener('message', (event) => {
     } else if (data.action === 'close') {
         app.classList.add('hidden');
         hideTooltip();
+    } else if (data.action === 'popup') {
+        addPopup(data);
     }
 });

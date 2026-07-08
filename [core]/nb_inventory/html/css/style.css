@@ -19,45 +19,49 @@ html, body {
 #app {
     width: 100%;
     height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     position: relative;
-}
-
-.inventory-wrap {
-    display: flex;
-    gap: 24px;
+    pointer-events: none;
 }
 
 .panel {
-    background: rgba(8, 10, 6, 0.88);
+    position: fixed;
+    background: rgba(8, 10, 6, 0.9);
     border: 1px solid #2a3a1a;
     box-shadow: 0 10px 50px rgba(0,0,0,0.6);
-    padding: 18px;
-    width: 460px;
+    width: 380px;
+    display: flex;
+    flex-direction: column;
+    pointer-events: auto;
 }
 
 .panel-header {
-    margin-bottom: 14px;
-    padding-bottom: 10px;
+    padding: 12px 16px;
     border-bottom: 1px solid #2a3a1a;
+    cursor: grab;
+    user-select: none;
 }
+.panel-header:active { cursor: grabbing; }
 
 .panel-title {
     font-family: 'Oswald', sans-serif;
-    font-size: 14px;
+    font-size: 13.5px;
     letter-spacing: 1.5px;
     color: #e0e8d0;
+    pointer-events: none;
 }
 
 .panel-body {
-    display: flex;
-    gap: 14px;
+    padding: 12px;
+}
+
+/* Fix 5x5-ös (25 slotos) magasság - ha több slot van, görgetünk */
+.grid-scroll {
+    max-height: calc(5 * (64px + 8px) - 8px);
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .grid {
-    flex: 1;
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 8px;
@@ -65,7 +69,8 @@ html, body {
 
 .slot {
     position: relative;
-    aspect-ratio: 1;
+    width: 64px;
+    height: 64px;
     background: rgba(255,255,255,0.04);
     border: 1px solid #22301a;
     display: flex;
@@ -83,19 +88,51 @@ html, body {
     font-size: 9px;
     color: #6a9a3a;
     font-family: 'Oswald', sans-serif;
+    pointer-events: none;
 }
 
 .slot.selected { border-color: #8fd15f; box-shadow: 0 0 8px rgba(143,209,95,0.4); }
-.slot.drag-over { background: rgba(106,154,58,0.2); }
+.slot.drag-over { background: rgba(106,154,58,0.25); border-color: #8fd15f; }
+
+.drag-ghost {
+    position: fixed;
+    z-index: 99999;
+    width: 40px;
+    height: 40px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    opacity: 0.85;
+    filter: drop-shadow(0 0 6px rgba(0,0,0,0.6));
+}
+.drag-ghost img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.slot .slot-icon-wrap {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.slot .slot-icon-img {
+    max-width: 38px;
+    max-height: 38px;
+    object-fit: contain;
+}
 
 .slot .slot-icon {
     font-size: 22px;
     color: #d8e0c8;
 }
-
 .slot .slot-icon.money { color: #8fd15f; }
 .slot .slot-icon.weapon { color: #e0a05f; }
 .slot .slot-icon.ammo { color: #c0c0c0; }
+.slot .slot-icon.fallback.hidden { display: none; }
 
 .slot .slot-qty {
     position: absolute;
@@ -106,6 +143,7 @@ html, body {
     color: #e0e8d0;
     font-family: 'Oswald', sans-serif;
     text-shadow: 0 0 3px #000;
+    pointer-events: none;
 }
 
 .slot .slot-durability {
@@ -116,6 +154,7 @@ html, body {
     height: 3px;
     background: rgba(255,255,255,0.15);
     overflow: hidden;
+    pointer-events: none;
 }
 
 .slot .slot-durability-fill {
@@ -123,43 +162,41 @@ html, body {
     background: #6a9a3a;
 }
 
-/* ---- Súly sáv ---- */
+/* ---- Súly sáv - alul, vízszintes ---- */
 .weight-wrap {
-    width: 26px;
+    padding: 10px 14px 14px 14px;
+    border-top: 1px solid #2a3a1a;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
 .weight-label {
-    font-size: 10px;
+    font-size: 11px;
     color: #8a9a7a;
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
     font-family: 'Oswald', sans-serif;
     letter-spacing: 0.5px;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .weight-track {
     flex: 1;
-    width: 10px;
+    height: 10px;
     background: rgba(255,255,255,0.06);
     border: 1px solid #22301a;
-    display: flex;
-    align-items: flex-end;
     overflow: hidden;
 }
 
 .weight-fill {
-    width: 100%;
-    height: 0%;
-    background: linear-gradient(0deg, #6a9a3a, #8fd15f);
-    transition: height 0.25s ease, background 0.25s ease;
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #6a9a3a, #8fd15f);
+    transition: width 0.25s ease, background 0.25s ease;
 }
 
-.weight-fill.warn { background: linear-gradient(0deg, #c08a2e, #e0b05f); }
-.weight-fill.danger { background: linear-gradient(0deg, #b04040, #e08080); }
+.weight-fill.warn { background: linear-gradient(90deg, #c08a2e, #e0b05f); }
+.weight-fill.danger { background: linear-gradient(90deg, #b04040, #e08080); }
 
 /* ---- Action bar ---- */
 .action-bar {
@@ -174,6 +211,7 @@ html, body {
     align-items: center;
     gap: 10px;
     box-shadow: 0 6px 30px rgba(0,0,0,0.5);
+    pointer-events: auto;
 }
 
 .action-item-name {
@@ -199,6 +237,8 @@ html, body {
 .action-btn:hover { background: rgba(106,154,58,0.3); }
 .action-btn.secondary { background: transparent; border-color: #3a3a3a; color: #a0a0a0; }
 .action-btn.secondary:hover { color: #d0d0d0; border-color: #5a5a5a; }
+.action-btn.danger { background: rgba(176,64,64,0.12); border-color: #b04040; color: #e08080; }
+.action-btn.danger:hover { background: rgba(176,64,64,0.28); }
 
 .amount-input {
     width: 60px;
@@ -210,7 +250,7 @@ html, body {
 }
 
 .close-btn {
-    position: absolute;
+    position: fixed;
     top: 24px;
     right: 24px;
     width: 34px;
@@ -220,6 +260,7 @@ html, body {
     color: #c0d0a8;
     cursor: pointer;
     font-size: 14px;
+    pointer-events: auto;
 }
 .close-btn:hover { background: rgba(176,64,64,0.2); border-color: #b04040; color: #e08080; }
 
@@ -258,3 +299,68 @@ html, body {
     color: #d8e0c8;
     font-weight: 600;
 }
+
+/* ============================================================
+   POPUP ÉRTESÍTÉSEK (kapott/használt/eldobott item) - bal oldalon,
+   kicsit lentebb mint közép, mindig látszik (nyitott inventory nélkül is)
+   ============================================================ */
+.popup-stack {
+    position: fixed;
+    top: 58%;
+    left: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.popup-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(8,10,6,0.9);
+    border-left: 3px solid #6a9a3a;
+    padding: 8px 12px;
+    opacity: 0;
+    transform: translateX(-16px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+.popup-item.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.popup-item .popup-icon-wrap {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid #22301a;
+}
+
+.popup-item .popup-icon-img {
+    max-width: 26px;
+    max-height: 26px;
+    object-fit: contain;
+}
+
+.popup-item .popup-icon-fallback {
+    font-size: 16px;
+    color: #d8e0c8;
+}
+
+.popup-item .popup-text {
+    font-size: 12.5px;
+    color: #d8e0c8;
+    font-weight: 600;
+    max-width: 200px;
+}
+
+::-webkit-scrollbar { width: 7px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2a3a1a; }

@@ -81,6 +81,15 @@ AddEventHandler('nb_accounts:playerLoggedIn', function(source)
         identifier = playerData.identifier,
         slots = loadSlotsFromDb('player', playerData.identifier)
     }
+
+    -- A kliens hotbar-jának is kell egy kezdeti adat, hogy már az UI
+    -- megnyitása előtt is működjön az 1-5 gomb.
+    TriggerClientEvent('nb_inventory:silentSync', source, NBInv.BuildPayload('player', source))
+
+    -- Kezdeti készpénz-adat a HUD-nak (ha fut)
+    pcall(function()
+        TriggerClientEvent('nb_hud:setStat', source, 'cash', NBInv.GetItemCount('player', source, 'cash'))
+    end)
 end)
 
 local function savePlayerInventory(source)
@@ -146,17 +155,84 @@ function NBInv.GetHandle(ownerType, ownerRef)
             function(slot, data) saveSlotToDb('player', cache.identifier, slot, data) end,
             Config.PlayerSlots, Config.MaxWeight
     elseif ownerType == 'stash' then
+        ownerRef = tonumber(ownerRef) or ownerRef
         local cache = NBInv.LoadStash(ownerRef)
         local stashInfo = NBInv.GetStashInfo and NBInv.GetStashInfo(ownerRef)
         return cache.slots,
             function(slot, data) saveSlotToDb('stash', tostring(ownerRef), slot, data) end,
-            (stashInfo and stashInfo.slot_count) or 50,
-            (stashInfo and stashInfo.weight_capacity) or 100
+            tonumber(stashInfo and stashInfo.slot_count) or Config.DefaultStashSlots,
+            tonumber(stashInfo and stashInfo.weight_capacity) or Config.DefaultStashWeight
     end
     return nil
 end
 
 local getHandle = NBInv.GetHandle
+
+--- Egy inventory teljes ürítése (pl. /clearinv admin parancshoz)
+function NBInv.ClearInventory(ownerType, ownerRef)
+    local slots, saveFn, maxSlots = getHandle(ownerType, ownerRef)
+    if not slots then return false end
+
+    for slot = 1, maxSlots do
+        if slots[slot] then
+            slots[slot] = nil
+            saveFn(slot, nil)
+        end
+    end
+    return true
+end
+
+--- Egy player TELJES inventoryjának áthelyezése egy (adott koordinátán lévő,
+--- vagy ott újonnan létrehozott) Föld-kupacba, majd a player inventoryjának
+--- ürítése. Visszaadja a Föld-kupac ID-ját (vagy nil, ha nem sikerült).
+--- Ezt használja pl. az nb_death a halott játékos kifosztásához.
+function NBInv.DumpToGroundStash(source, coords)
+    local slots = getHandle('player', source)
+    if not slots then return nil end
+
+    local groundId = NBInv.FindOrCreateGroundStash(coords)
+    if not groundId then return nil end
+
+    for _, data in pairs(slots) do
+        NBInv.AddItemTo('stash', groundId, data.item, data.quantity, data.metadata)
+    end
+
+    NBInv.ClearInventory('player', source)
+
+    return groundId
+end
+
+exports('DumpToGroundStash', function(source, coords) return NBInv.DumpToGroundStash(source, coords) end)
+
+-- ============================================================
+-- Popup értesítések (kapott/használt/eldobott item) - mindig látszik,
+-- függetlenül attól hogy nyitva van-e a fő inventory UI
+-- ============================================================
+function NBInv.SendPopup(source, itemName, kind, quantity)
+    local def = Config.Items[itemName]
+    if not def then return end
+
+    local text
+    if kind == 'received' then
+        text = ('+%d db %s'):format(quantity or 1, def.label)
+    elseif kind == 'used' then
+        text = ('Használva x%d db %s'):format(quantity or 1, def.label)
+    elseif kind == 'drawn' then
+        text = ('%s elővéve'):format(def.label)
+    elseif kind == 'equipped' then
+        text = ('%s elrakva'):format(def.label)
+    elseif kind == 'dropped' then
+        text = ('x%d db %s eldobva'):format(quantity or 1, def.label)
+    else
+        return
+    end
+
+    TriggerClientEvent('nb_inventory:popup', source, {
+        item = itemName,
+        label = def.label,
+        text = text
+    })
+end
 
 function NBInv.CalcWeight(slots)
     local total = 0
@@ -188,18 +264,15 @@ local function findFreeSlot(slots, maxSlots)
 end
 
 --- Item hozzáadása egy inventoryhoz (player vagy stash). metadata opcionális
---- (pl. fegyvernél durability/serial). Visszaad: ok(bool), reason(string)
-function NBInv.AddItemTo(ownerType, ownerRef, itemName, quantity, metadata)
+--- (pl. fegyvernél durability/serial). serialPrefixOverride opcionális -
+--- ha meg van adva, ez felülírja az item saját alapértelmezett serial
+--- előtagját (pl. shopoknál a frakció-alapú serial előtaghoz).
+--- Visszaad: ok(bool), reason(string)
+local function AddItemToImpl(ownerType, ownerRef, itemName, quantity, metadata, serialPrefixOverride)
     local def = Config.Items[itemName]
     if not def then return false, 'Ismeretlen item.' end
 
     metadata = metadata or {}
-    if def.hasDurability and metadata.durability == nil then
-        metadata.durability = 100
-    end
-    if def.hasSerial and metadata.serial == nil then
-        metadata.serial = NBInv.GenerateSerial(def.serialPrefix)
-    end
 
     local slots, saveFn, maxSlots, maxWeight = getHandle(ownerType, ownerRef)
     if not slots then return false, 'Az inventory nem elérhető.' end
@@ -210,10 +283,15 @@ function NBInv.AddItemTo(ownerType, ownerRef, itemName, quantity, metadata)
         return false, 'Nincs elég hely (túl nehéz lenne).'
     end
 
-    -- Egyedi metadatás (pl. fegyver serial) itemek sosem stackelődnek egymásra
-    local hasUniqueMeta = metadata and (metadata.serial ~= nil)
+    -- Egyedi metadatás (pl. fegyver serial) itemek sosem stackelődnek egymásra.
+    -- FONTOS: ha nem stackelhető az item (pl. fegyver), minden egyes
+    -- példánynak SAJÁT metadata táblát generálunk (saját serial/durability),
+    -- sosem osztozhatnak ugyanazon a táblán.
+    local hasUniqueMeta = not def.stackable or (metadata.serial ~= nil)
 
     if def.stackable and not hasUniqueMeta then
+        if def.hasDurability and metadata.durability == nil then metadata.durability = 100 end
+
         local stackSlot = findStackableSlot(slots, itemName, maxSlots, def)
         if stackSlot then
             local remaining = (def.maxStack or 999999) - slots[stackSlot].quantity
@@ -230,8 +308,25 @@ function NBInv.AddItemTo(ownerType, ownerRef, itemName, quantity, metadata)
         local freeSlot = findFreeSlot(slots, maxSlots)
         if not freeSlot then return false, 'Nincs több szabad hely.' end
 
-        local putQuantity = def.stackable and math.min(quantity, def.maxStack or 999999) or 1
-        slots[freeSlot] = { item = itemName, quantity = putQuantity, metadata = metadata or {} }
+        local putQuantity
+        local instanceMetadata
+
+        if def.stackable then
+            putQuantity = math.min(quantity, def.maxStack or 999999)
+            instanceMetadata = metadata
+            if def.hasDurability and instanceMetadata.durability == nil then instanceMetadata.durability = 100 end
+        else
+            putQuantity = 1
+            -- Saját, friss tábla PÉLDÁNYONKÉNT - ne osztozzon senki mással
+            instanceMetadata = {}
+            for k, v in pairs(metadata) do instanceMetadata[k] = v end
+            if def.hasDurability and instanceMetadata.durability == nil then instanceMetadata.durability = 100 end
+            if def.hasSerial and instanceMetadata.serial == nil then
+                instanceMetadata.serial = NBInv.GenerateSerial(serialPrefixOverride or def.serialPrefix)
+            end
+        end
+
+        slots[freeSlot] = { item = itemName, quantity = putQuantity, metadata = instanceMetadata }
         saveFn(freeSlot, slots[freeSlot])
         quantity = quantity - putQuantity
     end
@@ -240,7 +335,7 @@ function NBInv.AddItemTo(ownerType, ownerRef, itemName, quantity, metadata)
 end
 
 --- Item eltávolítása egy adott slotból (vagy ha nincs slot megadva, bárhonnan)
-function NBInv.RemoveItemFrom(ownerType, ownerRef, itemName, quantity)
+local function RemoveItemFromImpl(ownerType, ownerRef, itemName, quantity)
     local slots, saveFn = getHandle(ownerType, ownerRef)
     if not slots then return false end
 
@@ -262,6 +357,28 @@ function NBInv.RemoveItemFrom(ownerType, ownerRef, itemName, quantity)
     end
 
     return remaining <= 0
+end
+
+-- A HUD-nak minden készpénzt érintő változás után jeleznünk kell, függetlenül
+-- attól hogy a hívás honnan jött (NUI akció, /giveitem admin parancs, stb.) -
+-- ezért itt, a legalsó, KÖZÖS ponton toljuk ki, nem az egyes hívóhelyeken.
+local function pushCashIfPlayer(ownerType, ownerRef)
+    if ownerType ~= 'player' then return end
+    pcall(function()
+        TriggerClientEvent('nb_hud:setStat', ownerRef, 'cash', NBInv.GetItemCount('player', ownerRef, 'cash'))
+    end)
+end
+
+function NBInv.AddItemTo(ownerType, ownerRef, itemName, quantity, metadata, serialPrefixOverride)
+    local ok, reason = AddItemToImpl(ownerType, ownerRef, itemName, quantity, metadata, serialPrefixOverride)
+    if ok then pushCashIfPlayer(ownerType, ownerRef) end
+    return ok, reason
+end
+
+function NBInv.RemoveItemFrom(ownerType, ownerRef, itemName, quantity)
+    local ok = RemoveItemFromImpl(ownerType, ownerRef, itemName, quantity)
+    if ok then pushCashIfPlayer(ownerType, ownerRef) end
+    return ok
 end
 
 function NBInv.GetItemCount(ownerType, ownerRef, itemName)
@@ -317,7 +434,9 @@ end
 -- Publikus exportok
 -- ============================================================
 exports('GetInventory', function(source) return NBInv.BuildPayload('player', source) end)
-exports('AddItem', function(source, itemName, quantity, metadata) return NBInv.AddItemTo('player', source, itemName, quantity or 1, metadata) end)
+exports('GetItemDef', function(itemName) return Config.Items[itemName] end)
+exports('AddItem', function(source, itemName, quantity, metadata, serialPrefix) return NBInv.AddItemTo('player', source, itemName, quantity or 1, metadata, serialPrefix) end)
+exports('GenerateSerial', function(prefix) return NBInv.GenerateSerial(prefix) end)
 exports('RemoveItem', function(source, itemName, quantity) return NBInv.RemoveItemFrom('player', source, itemName, quantity or 1) end)
 exports('HasItem', function(source, itemName, quantity) return NBInv.HasItem('player', source, itemName, quantity) end)
 exports('GetItemCount', function(source, itemName) return NBInv.GetItemCount('player', source, itemName) end)

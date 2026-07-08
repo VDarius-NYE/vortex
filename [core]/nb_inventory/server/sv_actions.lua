@@ -5,11 +5,19 @@ local inventoryOpenFor = {}  -- [source] = true/false (van-e most nyitva a NUI-j
 local openStashFor = {}      -- [source] = stashId vagy nil
 
 local function refresh(source)
+    -- A saját inventory cache-t MINDIG frissítjük (a hotbar erre támaszkodik,
+    -- akkor is ha nincs nyitva a fő UI).
+    local playerPayload = NBInv.BuildPayload('player', source)
+    TriggerClientEvent('nb_inventory:silentSync', source, playerPayload)
+
+    -- A HUD-nak is jelezzük a jelenlegi készpénz mennyiséget (ha az nb_hud fut)
+    pcall(function()
+        TriggerClientEvent('nb_hud:setStat', source, 'cash', NBInv.GetItemCount('player', source, 'cash'))
+    end)
+
     if not inventoryOpenFor[source] then return end
 
-    local playerPayload = NBInv.BuildPayload('player', source)
     local stashPayload = nil
-
     if openStashFor[source] then
         stashPayload = NBInv.BuildPayload('stash', openStashFor[source])
         if stashPayload then
@@ -19,6 +27,11 @@ local function refresh(source)
 
     TriggerClientEvent('nb_inventory:updateUI', source, playerPayload, stashPayload)
 end
+
+-- Más fájlok (pl. sv_admin.lua) ezen keresztül kérhetik egy nyitva lévő UI frissítését
+AddEventHandler('nb_inventory:internalRefresh', function(targetSource)
+    refresh(targetSource)
+end)
 
 -- ============================================================
 -- Megnyitás
@@ -31,7 +44,7 @@ RegisterNetEvent('nb_inventory:requestOpen', function()
     inventoryOpenFor[source] = true
     openStashFor[source] = nil
 
-    TriggerClientEvent('nb_inventory:openUI', source, payload, nil)
+    TriggerClientEvent('nb_inventory:openUI', source, payload, nil, NBInv.GetPositions(source))
 end)
 
 RegisterNetEvent('nb_inventory:requestOpenStash', function(stashId)
@@ -56,7 +69,7 @@ RegisterNetEvent('nb_inventory:requestOpenStash', function(stashId)
     inventoryOpenFor[source] = true
     openStashFor[source] = stashId
 
-    TriggerClientEvent('nb_inventory:openUI', source, playerPayload, stashPayload)
+    TriggerClientEvent('nb_inventory:openUI', source, playerPayload, stashPayload, NBInv.GetPositions(source))
 end)
 
 RegisterNetEvent('nb_inventory:close', function()
@@ -69,6 +82,34 @@ AddEventHandler('playerDropped', function()
     local source = source
     inventoryOpenFor[source] = nil
     openStashFor[source] = nil
+end)
+
+-- Első előhúzás - itt vonjuk le a lőszert az inventoryból és töltjük be a fegyverbe.
+RegisterNetEvent('nb_inventory:requestDraw', function(data)
+    local source = source
+
+    local slots, saveFn = NBInv.GetHandle('player', source)
+    if not slots then return end
+
+    local item = slots[data.slot]
+    if not item then return end
+
+    local def = Config.Items[item.item]
+    if not def or def.type ~= 'weapon' then return end
+
+    local loadAmount = 0
+    if def.ammoItem then
+        local have = NBInv.GetItemCount('player', source, def.ammoItem)
+        loadAmount = math.min(have, def.magazineSize or 999)
+        if loadAmount > 0 then
+            NBInv.RemoveItemFrom('player', source, def.ammoItem, loadAmount)
+        end
+    end
+
+    TriggerClientEvent('nb_inventory:equipWeapon', source, item.item, loadAmount)
+    NBInv.SendPopup(source, item.item, 'drawn')
+
+    refresh(source)
 end)
 
 -- ============================================================
@@ -85,30 +126,86 @@ RegisterNetEvent('nb_inventory:useItem', function(data)
     if not item then return end
 
     local def = Config.Items[item.item]
-    if not def or not def.usable then return end
+    if not def or not def.usable or def.type == 'weapon' then return end
 
-    if def.type == 'weapon' then
-        TriggerClientEvent('nb_inventory:equipWeapon', source, def.weaponHash, item.metadata or {})
+    if def.effect then
+        if def.effect.kind == 'hunger' then
+            exports['nb_basicneeds']:AddHunger(source, def.effect.amount)
+        elseif def.effect.kind == 'thirst' then
+            exports['nb_basicneeds']:AddThirst(source, def.effect.amount)
+        elseif def.effect.kind == 'health' then
+            TriggerClientEvent('nb_inventory:healEffect', source, def.effect.amount)
+        end
+    end
+
+    item.quantity = item.quantity - 1
+    if item.quantity <= 0 then
+        slots[data.slot] = nil
+        saveFn(data.slot, nil)
     else
-        if def.effect then
-            if def.effect.kind == 'hunger' then
-                exports['nb_basicneeds']:AddHunger(source, def.effect.amount)
-            elseif def.effect.kind == 'thirst' then
-                exports['nb_basicneeds']:AddThirst(source, def.effect.amount)
-            elseif def.effect.kind == 'health' then
-                TriggerClientEvent('nb_inventory:healEffect', source, def.effect.amount)
-            end
-        end
+        saveFn(data.slot, item)
+    end
 
-        item.quantity = item.quantity - 1
-        if item.quantity <= 0 then
-            slots[data.slot] = nil
-            saveFn(data.slot, nil)
-        else
-            saveFn(data.slot, item)
-        end
+    NBInv.SendPopup(source, item.item, 'used', 1)
 
-        exports['nb_core']:Notify(source, { message = ('%s használva.'):format(def.label), type = 'success', duration = 3000 })
+    refresh(source)
+end)
+
+-- Ismételt elő-/elrakás (amikor a fegyver már korábban be lett töltve
+-- ebben a szesszióban) - itt nincs lőszer-levonás, csak popup visszajelzés.
+RegisterNetEvent('nb_inventory:weaponToggled', function(itemKey, kind)
+    local source = source
+    NBInv.SendPopup(source, itemKey, kind == 'holster' and 'equipped' or 'drawn')
+end)
+
+-- Fegyver újratöltése (csak akkor hívja a kliens, ha a tár üres) - annyi
+-- lőszert von le az inventoryból, amennyi a tárba fér, és azt be is tölti.
+RegisterNetEvent('nb_inventory:reloadWeapon', function(itemKey)
+    local source = source
+    local def = Config.Items[itemKey]
+    if not def or def.type ~= 'weapon' or not def.ammoItem then return end
+
+    local have = NBInv.GetItemCount('player', source, def.ammoItem)
+    local loadAmount = math.min(have, def.magazineSize or 999)
+
+    if loadAmount <= 0 then
+        exports['nb_core']:Notify(source, { message = 'Nincs lőszered ehhez a fegyverhez.', type = 'error' })
+        return
+    end
+
+    NBInv.RemoveItemFrom('player', source, def.ammoItem, loadAmount)
+    TriggerClientEvent('nb_inventory:reloadAmmo', source, itemKey, loadAmount)
+    exports['nb_core']:Notify(source, { message = ('Újratöltve: %d db %s.'):format(loadAmount, Config.Items[def.ammoItem].label), type = 'success' })
+
+    refresh(source)
+end)
+
+-- ============================================================
+-- Eldobás
+-- ============================================================
+RegisterNetEvent('nb_inventory:dropItem', function(data)
+    local source = source
+    local ownerType = data.side == 'stash' and 'stash' or 'player'
+    local ownerRef = data.side == 'stash' and data.stashId or source
+
+    local slots, saveFn = NBInv.GetHandle(ownerType, ownerRef)
+    if not slots then return end
+
+    local item = slots[data.slot]
+    if not item then return end
+
+    local quantity = item.quantity
+    slots[data.slot] = nil
+    saveFn(data.slot, nil)
+
+    -- A dobás mindig a JÁTÉKOS aktuális pozíciójára kerül (egy közeli, le nem
+    -- járt Föld-kupacba, vagy ha nincs ilyen a közelben, egy újba).
+    local coords = GetEntityCoords(GetPlayerPed(source))
+    local groundStashId = NBInv.FindOrCreateGroundStash(coords)
+    NBInv.AddItemTo('stash', groundStashId, item.item, quantity, item.metadata)
+
+    if ownerType == 'player' then
+        NBInv.SendPopup(source, item.item, 'dropped', quantity)
     end
 
     refresh(source)
@@ -224,6 +321,17 @@ RegisterNetEvent('nb_inventory:moveItem', function(data)
     end
 
     refresh(source)
+
+    -- Ha egy Föld-kupacból vettünk ki valamit és az ezáltal kiürült, töröljük
+    -- automatikusan (prop/interact is eltűnik minden kliensen), és ha nálam
+    -- éppen nyitva van, zárjuk be a Föld panelt.
+    if fromType == 'stash' then
+        local deleted = NBInv.CheckGroundStashEmpty(fromRef)
+        if deleted and openStashFor[source] == fromRef then
+            openStashFor[source] = nil
+            TriggerClientEvent('nb_inventory:closeStash', source)
+        end
+    end
 end)
 
 -- ============================================================
@@ -236,10 +344,10 @@ RegisterNetEvent('nb_inventory:reportShot', function(weaponHash)
 
     for slot, data in pairs(slots) do
         local def = Config.Items[data.item]
-        if def and def.weaponHash and GetHashKey(def.weaponHash) == weaponHash then
+        if def and def.type == 'weapon' and GetHashKey(data.item) == weaponHash then
             data.metadata = data.metadata or {}
             local dur = data.metadata.durability or 100
-            dur = math.max(0, dur - (math.random(10, 30) / 10))
+            dur = math.max(0, dur - (math.random(2, 6) / 100))
             data.metadata.durability = dur
             saveFn(slot, data)
             break
@@ -247,4 +355,23 @@ RegisterNetEvent('nb_inventory:reportShot', function(weaponHash)
     end
 
     refresh(source)
+end)
+
+-- ============================================================
+-- Kényszerített stash-megnyitás (más resource-ok számára, pl. nb_death a
+-- kifosztott halott játékos inventoryjának megnyitásához) - nincs
+-- távolság-ellenőrzés, mert a hívó resource már validálta a kontextust.
+-- ============================================================
+AddEventHandler('nb_inventory:forceOpenStash', function(source, stashId)
+    local playerPayload = NBInv.BuildPayload('player', source)
+    local stashPayload = NBInv.BuildPayload('stash', stashId)
+    if not playerPayload or not stashPayload then return end
+
+    stashPayload.stashId = stashId
+    stashPayload.factionId = 'GROUND'
+
+    inventoryOpenFor[source] = true
+    openStashFor[source] = stashId
+
+    TriggerClientEvent('nb_inventory:openUI', source, playerPayload, stashPayload, NBInv.GetPositions(source))
 end)
